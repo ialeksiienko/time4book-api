@@ -1,0 +1,1368 @@
+basePath: /api/v1
+definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.LoginResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+      status:
+        type: boolean
+      userId:
+        type: string
+    type: object
+  auth.MeResponse:
+    properties:
+      company:
+        properties:
+          address:
+            type: string
+          id:
+            type: string
+          industry:
+            type: string
+          name:
+            type: string
+          nip:
+            type: string
+        type: object
+      status:
+        type: boolean
+      user:
+        properties:
+          companyId:
+            type: string
+          email:
+            type: string
+          firstName:
+            type: string
+          id:
+            type: string
+          lastName:
+            type: string
+          role:
+            type: string
+        type: object
+    type: object
+  auth.RefreshRequest:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  auth.RefreshResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+      status:
+        type: boolean
+    type: object
+  auth.RegisterRequest:
+    properties:
+      companyAddress:
+        type: string
+      companyIndustry:
+        type: string
+      companyName:
+        type: string
+      companyNip:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - companyName
+    - email
+    - firstName
+    - lastName
+    - password
+    type: object
+  auth.RegisterResponse:
+    properties:
+      accessToken:
+        type: string
+      companyId:
+        type: string
+      refreshToken:
+        type: string
+      status:
+        type: boolean
+      userId:
+        type: string
+    type: object
+  company.CreateRequest:
+    properties:
+      address:
+        type: string
+      industry:
+        type: string
+      name:
+        type: string
+      nip:
+        type: string
+    required:
+    - name
+    type: object
+  company.CreateResponse:
+    properties:
+      companyId:
+        type: string
+      status:
+        type: boolean
+    type: object
+  company.GetByIDResponse:
+    properties:
+      address:
+        type: string
+      companyStatus:
+        type: string
+      id:
+        type: string
+      industry:
+        type: string
+      name:
+        type: string
+      nip:
+        type: string
+      status:
+        type: boolean
+    type: object
+  company.ListResponse:
+    properties:
+      address:
+        type: string
+      companyStatus:
+        type: string
+      id:
+        type: string
+      industry:
+        type: string
+      name:
+        type: string
+      nip:
+        type: string
+    type: object
+  company.PaginatedCompanyResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/company.ListResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  company.UpdateRequest:
+    properties:
+      address:
+        type: string
+      industry:
+        type: string
+      name:
+        type: string
+      nip:
+        type: string
+    required:
+    - name
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        example: error message detail
+        type: string
+      status:
+        example: false
+        type: boolean
+    type: object
+  handlers.SuccessResponse:
+    properties:
+      message:
+        example: success
+        type: string
+      status:
+        example: true
+        type: boolean
+    type: object
+  reservation.CreateRequest:
+    properties:
+      description:
+        type: string
+      endDate:
+        type: string
+      resourceId:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - resourceId
+    - startDate
+    type: object
+  reservation.CreateResponse:
+    properties:
+      reservationId:
+        type: string
+      status:
+        type: boolean
+    type: object
+  reservation.ListByResourceResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/reservation.ListResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  reservation.ListMyResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/reservation.ListResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  reservation.ListResponse:
+    properties:
+      cancelledAt:
+        type: string
+      description:
+        type: string
+      endDate:
+        type: string
+      id:
+        type: string
+      reservationStatus:
+        type: string
+      resourceId:
+        type: string
+      startDate:
+        type: string
+      userId:
+        type: string
+    type: object
+  reservation.PaginatedReservationResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/reservation.ListResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  resource.CreateRequest:
+    properties:
+      availableFrom:
+        type: string
+      availableTo:
+        type: string
+      companyId:
+        type: string
+      description:
+        type: string
+      location:
+        type: string
+      maxReservationMinutes:
+        type: integer
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - companyId
+    - name
+    - type
+    type: object
+  resource.CreateResponse:
+    properties:
+      resourceId:
+        type: string
+      status:
+        type: boolean
+    type: object
+  resource.GetByIDResponse:
+    properties:
+      availableFrom:
+        type: string
+      availableTo:
+        type: string
+      companyId:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      maxReservationMinutes:
+        type: integer
+      name:
+        type: string
+      resourceStatus:
+        type: string
+      status:
+        type: boolean
+      type:
+        type: string
+    type: object
+  resource.ListResponse:
+    properties:
+      availableFrom:
+        type: string
+      availableTo:
+        type: string
+      companyId:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      maxReservationMinutes:
+        type: integer
+      name:
+        type: string
+      resourceStatus:
+        type: string
+      type:
+        type: string
+    type: object
+  resource.PaginatedResourceResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/resource.ListResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  resource.ServiceRequest:
+    properties:
+      from:
+        type: string
+      reason:
+        type: string
+      to:
+        type: string
+    required:
+    - from
+    - reason
+    type: object
+  resource.UpdateRequest:
+    properties:
+      availableFrom:
+        type: string
+      availableTo:
+        type: string
+      description:
+        type: string
+      location:
+        type: string
+      maxReservationMinutes:
+        type: integer
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  user.CreateRequest:
+    properties:
+      companyId:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      role:
+        type: string
+    required:
+    - companyId
+    - email
+    - firstName
+    - lastName
+    - password
+    - role
+    type: object
+  user.CreateResponse:
+    properties:
+      status:
+        type: boolean
+      userId:
+        type: string
+    type: object
+  user.ListResponse:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  user.PaginatedUserResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/user.ListResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  user.UpdateRequest:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:50052
+info:
+  contact: {}
+  description: Time4Book service API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Time4Book
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns access and refresh tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Login user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Logs out the current user by invalidating the refresh token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Returns the profile of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.MeResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Get a new access token using a refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.RefreshResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Refresh token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a user and creates an associated company
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /companies:
+    get:
+      description: Get a paginated list of companies
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/company.PaginatedCompanyResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List companies
+      tags:
+      - companies
+    post:
+      consumes:
+      - application/json
+      description: Create a new company
+      parameters:
+      - description: Company details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/company.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/company.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create company
+      tags:
+      - companies
+  /companies/{id}:
+    get:
+      description: Get company details by ID
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/company.GetByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get company by ID
+      tags:
+      - companies
+    put:
+      consumes:
+      - application/json
+      description: Update company details
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/company.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update company
+      tags:
+      - companies
+  /companies/{id}/block:
+    post:
+      description: Block a company account
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Block company
+      tags:
+      - companies
+  /reservations:
+    get:
+      description: Get a paginated list of reservations globally
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Company ID
+        in: query
+        name: companyId
+        type: string
+      - description: User ID
+        in: query
+        name: userId
+        type: string
+      - description: Resource ID
+        in: query
+        name: resourceId
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      - description: From date (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: To date (RFC3339)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/reservation.PaginatedReservationResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List reservations
+      tags:
+      - reservations
+    post:
+      consumes:
+      - application/json
+      description: Create a new reservation for a resource
+      parameters:
+      - description: Reservation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/reservation.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/reservation.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create reservation
+      tags:
+      - reservations
+  /reservations/{id}/cancel:
+    post:
+      description: Cancel an active reservation
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel reservation
+      tags:
+      - reservations
+  /reservations/my:
+    get:
+      description: Get a paginated list of my reservations
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/reservation.ListMyResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my reservations
+      tags:
+      - reservations
+  /reservations/resource/{id}:
+    get:
+      description: Get a paginated list of reservations for a specific resource
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: From date (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: To date (RFC3339)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/reservation.ListByResourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List reservations by resource
+      tags:
+      - reservations
+  /resources:
+    get:
+      description: Get a paginated list of resources
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Company ID
+        in: query
+        name: companyId
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Type
+        in: query
+        name: type
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/resource.PaginatedResourceResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List resources
+      tags:
+      - resources
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource within a company
+      parameters:
+      - description: Resource details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/resource.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/resource.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create resource
+      tags:
+      - resources
+  /resources/{id}:
+    delete:
+      description: Delete a resource
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete resource
+      tags:
+      - resources
+    get:
+      description: Get resource details by ID
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/resource.GetByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get resource by ID
+      tags:
+      - resources
+    put:
+      consumes:
+      - application/json
+      description: Update resource details
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/resource.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update resource
+      tags:
+      - resources
+  /resources/{id}/restore:
+    post:
+      description: Restore a resource from service status back to active
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore resource
+      tags:
+      - resources
+  /resources/{id}/service:
+    post:
+      consumes:
+      - application/json
+      description: Mark a resource as out-of-order/in-service for a period
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Service parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/resource.ServiceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark resource in service
+      tags:
+      - resources
+  /users:
+    get:
+      description: Get a paginated list of users
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Company ID
+        in: query
+        name: companyId
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Role
+        in: query
+        name: role
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.PaginatedUserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user within a company
+      parameters:
+      - description: User details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Deactivate a user account
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Deactivate user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user profile, role, or status
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - users
+swagger: "2.0"
