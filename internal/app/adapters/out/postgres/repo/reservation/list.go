@@ -6,18 +6,18 @@ import (
 	"strings"
 	"time"
 	"time4book/internal/app/adapters/out/postgres"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 
 	"github.com/google/uuid"
 )
 
-func (r *ReservationRepo) List(ctx context.Context, f booking.ListFilter) ([]*booking.Booking, int64, error) {
+func (r *ReservationRepo) List(ctx context.Context, f reservation.ListFilter) ([]*reservation.Reservation, int64, error) {
 	queryBuilder := strings.Builder{}
 	countBuilder := strings.Builder{}
 	args := []any{}
 	argId := 1
 
-	queryBuilder.WriteString(`SELECT r.id, r.user_id, r.resource_id, r.start_date, r.end_date, r.description, r.status, r.created_at, r.updated_at FROM reservations r JOIN resources res ON r.resource_id = res.id WHERE 1=1`)
+	queryBuilder.WriteString(`SELECT r.id, r.user_id, r.company_id, r.resource_id, r.start_date, r.end_date, r.description, r.status, r.created_at, r.updated_at FROM reservations r JOIN resources res ON r.resource_id = res.id WHERE 1=1`)
 	countBuilder.WriteString(`SELECT count(r.id) FROM reservations r JOIN resources res ON r.resource_id = res.id WHERE 1=1`)
 
 	if f.CompanyID != nil {
@@ -86,11 +86,12 @@ func (r *ReservationRepo) List(ctx context.Context, f booking.ListFilter) ([]*bo
 	}
 	defer rows.Close()
 
-	var res []*booking.Booking
+	var res []*reservation.Reservation
 	for rows.Next() {
 		var row struct {
 			ID          uuid.UUID
 			UserID      uuid.UUID
+			CompanyID   uuid.UUID
 			ResourceID  uuid.UUID
 			StartDate   time.Time
 			EndDate     time.Time
@@ -103,6 +104,7 @@ func (r *ReservationRepo) List(ctx context.Context, f booking.ListFilter) ([]*bo
 		if err := rows.Scan(
 			&row.ID,
 			&row.UserID,
+			&row.CompanyID,
 			&row.ResourceID,
 			&row.StartDate,
 			&row.EndDate,
@@ -114,9 +116,10 @@ func (r *ReservationRepo) List(ctx context.Context, f booking.ListFilter) ([]*bo
 			return nil, 0, fmt.Errorf("scan reservation: %w", err)
 		}
 
-		res = append(res, booking.Reconstitute(&booking.Props{
+		res = append(res, reservation.Reconstitute(&reservation.Props{
 			ID:          row.ID,
 			UserID:      row.UserID,
+			CompanyID:   row.CompanyID,
 			ResourceID:  row.ResourceID,
 			Description: row.Description,
 			StartDate:   row.StartDate,

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 	"time4book/internal/app/adapters/out/postgres"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 
 	"github.com/google/uuid"
 )
 
-func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*booking.Booking, error) {
-	q := `SELECT id, user_id, resource_id, start_date, end_date, description, status, created_at, updated_at 
+func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*reservation.Reservation, error) {
+	q := `SELECT id, user_id, company_id, resource_id, start_date, end_date, description, status, created_at, updated_at 
           FROM reservations 
           WHERE resource_id = $1 
             AND status = 'active'
@@ -29,11 +29,12 @@ func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourc
 	}
 	defer rows.Close()
 
-	var res []*booking.Booking
+	var res []*reservation.Reservation
 	for rows.Next() {
 		var row struct {
 			ID          uuid.UUID
 			UserID      uuid.UUID
+			CompanyID   uuid.UUID
 			ResourceID  uuid.UUID
 			StartDate   time.Time
 			EndDate     time.Time
@@ -46,6 +47,7 @@ func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourc
 		if err := rows.Scan(
 			&row.ID,
 			&row.UserID,
+			&row.CompanyID,
 			&row.ResourceID,
 			&row.StartDate,
 			&row.EndDate,
@@ -57,9 +59,10 @@ func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourc
 			return nil, fmt.Errorf("scan reservation: %w", err)
 		}
 
-		res = append(res, booking.Reconstitute(&booking.Props{
+		res = append(res, reservation.Reconstitute(&reservation.Props{
 			ID:          row.ID,
 			UserID:      row.UserID,
+			CompanyID:   row.CompanyID,
 			ResourceID:  row.ResourceID,
 			Description: row.Description,
 			StartDate:   row.StartDate,

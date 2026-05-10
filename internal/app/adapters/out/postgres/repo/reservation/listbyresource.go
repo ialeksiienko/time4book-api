@@ -3,13 +3,13 @@ package reservationrepo
 import (
 	"context"
 	"time"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 
 	"github.com/google/uuid"
 )
 
-func (r *ReservationRepo) ListByResourceID(ctx context.Context, resourceID uuid.UUID, from, to *time.Time, page, limit int) ([]*booking.Booking, int64, error) {
-	filter := booking.ListFilter{
+func (r *ReservationRepo) ListByResourceID(ctx context.Context, resourceID uuid.UUID, from, to *time.Time, page, limit int) ([]*reservation.Reservation, int64, error) {
+	filter := reservation.ListFilter{
 		ResourceID: &resourceID,
 		From:       from,
 		To:         to,

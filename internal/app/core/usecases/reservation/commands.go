@@ -2,7 +2,7 @@ package reservationcommands
 
 import (
 	"log/slog"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/pkg/validator"
@@ -19,7 +19,7 @@ type Facade struct {
 func NewFacade(
 	urepo user.UserRepo,
 	resrepo resource.ResourceRepo,
-	brepo booking.BookingRepo,
+	brepo reservation.ReservationRepo,
 	v *validator.Facade,
 	log *slog.Logger,
 ) *Facade {

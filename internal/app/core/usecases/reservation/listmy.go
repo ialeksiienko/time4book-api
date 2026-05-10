@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 
 	"github.com/google/uuid"
 )
@@ -16,32 +16,32 @@ type ListMyRequest struct {
 }
 
 type ListMyResponse struct {
-	Reservations []booking.Booking
+	Reservations []reservation.Reservation
 	Total        int64
 }
 
 type ListMy struct {
-	bookingRepo booking.BookingRepo
-	log         *slog.Logger
+	reservationRepo reservation.ReservationRepo
+	log             *slog.Logger
 }
 
 func newListMy(
-	brepo booking.BookingRepo,
+	brepo reservation.ReservationRepo,
 	l *slog.Logger,
 ) *ListMy {
 	return &ListMy{
-		bookingRepo: brepo,
-		log:         l,
+		reservationRepo: brepo,
+		log:             l,
 	}
 }
 
 func (c *ListMy) Execute(ctx context.Context, req *ListMyRequest) (*ListMyResponse, error) {
-	res, total, err := c.bookingRepo.ListByUserID(ctx, req.UserID, req.Page, req.Limit)
+	res, total, err := c.reservationRepo.ListByUserID(ctx, req.UserID, req.Page, req.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations by user: %w", err)
 	}
 
-	reservations := make([]booking.Booking, len(res))
+	reservations := make([]reservation.Reservation, len(res))
 	for i, r := range res {
 		reservations[i] = *r
 	}

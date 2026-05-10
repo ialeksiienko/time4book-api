@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/pkg/validator"
@@ -14,8 +14,9 @@ import (
 )
 
 type CreateRequest struct {
-	InitiatorID uuid.UUID
-	ResourceID  uuid.UUID
+	InitiatorID uuid.UUID `validate:"required"`
+	CompanyID   uuid.UUID `validate:"required"`
+	ResourceID  uuid.UUID `validate:"required"`
 	StartDate   time.Time `validate:"required"`
 	EndDate     time.Time `validate:"required"`
 	Description *string
@@ -26,26 +27,26 @@ type CreateResponse struct {
 }
 
 type Create struct {
-	userRepo     user.UserRepo
-	resourceRepo resource.ResourceRepo
-	bookingRepo  booking.BookingRepo
-	validator    *validator.Facade
-	log          *slog.Logger
+	userRepo        user.UserRepo
+	resourceRepo    resource.ResourceRepo
+	reservationRepo reservation.ReservationRepo
+	validator       *validator.Facade
+	log             *slog.Logger
 }
 
 func newCreate(
 	urepo user.UserRepo,
 	resrepo resource.ResourceRepo,
-	brepo booking.BookingRepo,
+	brepo reservation.ReservationRepo,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Create {
 	return &Create{
-		userRepo:     urepo,
-		resourceRepo: resrepo,
-		bookingRepo:  brepo,
-		validator:    v,
-		log:          l,
+		userRepo:        urepo,
+		resourceRepo:    resrepo,
+		reservationRepo: brepo,
+		validator:       v,
+		log:             l,
 	}
 }
 
@@ -79,27 +80,28 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		}
 	}
 
-	activeBookings, err := c.bookingRepo.ActiveByResourceIDInRange(ctx, req.ResourceID, req.StartDate, req.EndDate, nil)
+	activeReservations, err := c.reservationRepo.ActiveByResourceIDInRange(ctx, req.ResourceID, req.StartDate, req.EndDate, nil)
 	if err != nil {
-		return nil, fmt.Errorf("check active bookings: %w", err)
+		return nil, fmt.Errorf("check active reservations: %w", err)
 	}
-	if len(activeBookings) > 0 {
+	if len(activeReservations) > 0 {
 		return nil, fmt.Errorf("time slot is already booked")
 	}
 
-	b, err := booking.NewBooking(
+	b, err := reservation.NewReservation(
 		initiator.ID(),
+		req.CompanyID,
 		req.ResourceID,
 		req.StartDate,
 		req.EndDate,
 		req.Description,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("new booking: %w", err)
+		return nil, fmt.Errorf("new reservation: %w", err)
 	}
 
-	if err := c.bookingRepo.Create(ctx, b); err != nil {
-		return nil, fmt.Errorf("create booking: %w", err)
+	if err := c.reservationRepo.Create(ctx, b); err != nil {
+		return nil, fmt.Errorf("create reservation: %w", err)
 	}
 
 	return &CreateResponse{ReservationID: b.ID()}, nil

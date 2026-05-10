@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 
 	"github.com/google/uuid"
 )
@@ -19,32 +19,32 @@ type ListByResourceRequest struct {
 }
 
 type ListByResourceResponse struct {
-	Reservations []booking.Booking
+	Reservations []reservation.Reservation
 	Total        int64
 }
 
 type ListByResource struct {
-	bookingRepo booking.BookingRepo
-	log         *slog.Logger
+	reservationRepo reservation.ReservationRepo
+	log             *slog.Logger
 }
 
 func newListByResource(
-	brepo booking.BookingRepo,
+	brepo reservation.ReservationRepo,
 	l *slog.Logger,
 ) *ListByResource {
 	return &ListByResource{
-		bookingRepo: brepo,
-		log:         l,
+		reservationRepo: brepo,
+		log:             l,
 	}
 }
 
 func (c *ListByResource) Execute(ctx context.Context, req *ListByResourceRequest) (*ListByResourceResponse, error) {
-	res, total, err := c.bookingRepo.ListByResourceID(ctx, req.ResourceID, req.From, req.To, req.Page, req.Limit)
+	res, total, err := c.reservationRepo.ListByResourceID(ctx, req.ResourceID, req.From, req.To, req.Page, req.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations by resource: %w", err)
 	}
 
-	reservations := make([]booking.Booking, len(res))
+	reservations := make([]reservation.Reservation, len(res))
 	for i, r := range res {
 		reservations[i] = *r
 	}

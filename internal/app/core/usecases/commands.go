@@ -3,8 +3,8 @@ package usecases
 import (
 	"log/slog"
 	"time4book/internal/app/core/domain/model/auth"
-	"time4book/internal/app/core/domain/model/booking"
 	"time4book/internal/app/core/domain/model/company"
+	"time4book/internal/app/core/domain/model/reservation"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/ports"
@@ -29,7 +29,7 @@ func New(
 	authRepo auth.AuthRepo,
 	companyRepo company.CompanyRepo,
 	resourceRepo resource.ResourceRepo,
-	bookingRepo booking.BookingRepo,
+	reservationRepo reservation.ReservationRepo,
 	txManager ports.TxManager,
 	tokenManager ports.TokenManager,
 	validator *validator.Facade,
@@ -40,7 +40,6 @@ func New(
 		User:        usercommands.NewFacade(userRepo, authRepo, txManager, validator, log.With(slog.String("module", "user"))),
 		Company:     companycommands.NewFacade(userRepo, companyRepo, txManager, validator, log.With(slog.String("module", "company"))),
 		Resource:    resourcecommands.NewFacade(userRepo, resourceRepo, validator, log.With(slog.String("module", "resource"))),
-		Reservation: reservationcommands.NewFacade(userRepo, resourceRepo, bookingRepo, validator, log.With(slog.String("module", "reservation"))),
+		Reservation: reservationcommands.NewFacade(userRepo, resourceRepo, reservationRepo, validator, log.With(slog.String("module", "reservation"))),
 	}
 }
-

@@ -4,16 +4,17 @@ import (
 	"context"
 	"fmt"
 	"time4book/internal/app/adapters/out/postgres"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 )
 
-func (r *ReservationRepo) Create(ctx context.Context, b *booking.Booking) error {
-	q := `INSERT INTO reservations (id, user_id, resource_id, start_date, end_date, description, status, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+func (r *ReservationRepo) Create(ctx context.Context, b *reservation.Reservation) error {
+	q := `INSERT INTO reservations (id, user_id, company_id, resource_id, start_date, end_date, description, status, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	_, err := postgres.ExtractQuerier(ctx, r.db).Exec(ctx, q,
 		b.ID(),
 		b.UserID(),
+		b.CompanyID(),
 		b.ResourceID(),
 		b.StartDate(),
 		b.EndDate(),

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
-	"time4book/internal/app/core/domain/model/booking"
+	"time4book/internal/app/core/domain/model/reservation"
 
 	"github.com/google/uuid"
 )
@@ -22,27 +22,27 @@ type ListRequest struct {
 }
 
 type ListResponse struct {
-	Reservations []booking.Booking
+	Reservations []reservation.Reservation
 	Total        int64
 }
 
 type List struct {
-	bookingRepo booking.BookingRepo
-	log         *slog.Logger
+	reservationRepo reservation.ReservationRepo
+	log             *slog.Logger
 }
 
 func newList(
-	brepo booking.BookingRepo,
+	brepo reservation.ReservationRepo,
 	l *slog.Logger,
 ) *List {
 	return &List{
-		bookingRepo: brepo,
-		log:         l,
+		reservationRepo: brepo,
+		log:             l,
 	}
 }
 
 func (c *List) Execute(ctx context.Context, req *ListRequest) (*ListResponse, error) {
-	filter := booking.ListFilter{
+	filter := reservation.ListFilter{
 		CompanyID:  req.CompanyID,
 		UserID:     req.UserID,
 		ResourceID: req.ResourceID,
@@ -53,16 +53,16 @@ func (c *List) Execute(ctx context.Context, req *ListRequest) (*ListResponse, er
 	}
 
 	if req.Status != nil && *req.Status != "" {
-		s := booking.BookingStatus(*req.Status)
+		s := reservation.ReservationStatus(*req.Status)
 		filter.Status = &s
 	}
 
-	res, total, err := c.bookingRepo.List(ctx, filter)
+	res, total, err := c.reservationRepo.List(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations: %w", err)
 	}
 
-	reservations := make([]booking.Booking, len(res))
+	reservations := make([]reservation.Reservation, len(res))
 	for i, r := range res {
 		reservations[i] = *r
 	}
