@@ -87,6 +87,6 @@ func (r *Role) IsDeveloper() bool { return r.id == RoleDeveloperKey }
 func (r *Role) Key() RoleKey         { return r.id }
 func (r *Role) FriendlyName() string { return r.friendlyName }
 
-func (r *Role) String() string { return string(r.Key()) }
+func (r *Role) String() string { return string(r.id) }
 
 func RoleKeyFromString(s string) RoleKey { return RoleKey(s) }
