@@ -49,6 +49,12 @@ func (h *Handler) GetByID(c *gin.Context) {
 		ResourceID: id,
 	}
 
+	if companyIDStr := c.GetString("companyID"); companyIDStr != "" {
+		if cid, err := uuid.Parse(companyIDStr); err == nil {
+			req.CompanyID = cid
+		}
+	}
+
 	res, err := h.commands.GetByID.Execute(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, handlers.ErrorResponse{

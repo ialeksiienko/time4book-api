@@ -12,6 +12,7 @@ import (
 
 type CancelRequest struct {
 	InitiatorID   uuid.UUID
+	CompanyID     uuid.UUID
 	ReservationID uuid.UUID
 }
 
@@ -44,6 +45,10 @@ func (c *Cancel) Execute(ctx context.Context, req *CancelRequest) (*CancelRespon
 	b, err := c.reservationRepo.ByID(ctx, req.ReservationID)
 	if err != nil {
 		return nil, fmt.Errorf("get reservation: %w", err)
+	}
+
+	if req.CompanyID != b.CompanyID() {
+		return nil, fmt.Errorf("reservation not in company")
 	}
 
 	if b.UserID() == initiator.ID() {

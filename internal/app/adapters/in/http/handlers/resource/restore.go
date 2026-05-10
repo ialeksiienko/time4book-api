@@ -24,6 +24,9 @@ func (h *Handler) Restore(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -36,6 +39,7 @@ func (h *Handler) Restore(c *gin.Context) {
 
 	req := &resourcecommands.RestoreRequest{
 		InitiatorID: initiatorID,
+		CompanyID:   companyID,
 		ResourceID:  id,
 	}
 

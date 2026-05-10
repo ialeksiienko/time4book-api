@@ -50,6 +50,10 @@ func (h *Handler) ListMy(c *gin.Context) {
 	userID, _ := uuid.Parse(userIDStr)
 	req.UserID = userID
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+	req.CompanyID = companyID
+
 	res, err := h.commands.ListMy.Execute(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, handlers.ErrorResponse{

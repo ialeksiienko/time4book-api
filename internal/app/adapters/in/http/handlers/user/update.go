@@ -43,6 +43,9 @@ func (h *Handler) Update(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	targetIDStr := c.Param("id")
 	targetID, err := uuid.Parse(targetIDStr)
 	if err != nil {
@@ -55,6 +58,7 @@ func (h *Handler) Update(c *gin.Context) {
 
 	req := &usercommands.UpdateRequest{
 		InitiatorID: initiatorID,
+		CompanyID:   companyID,
 		TargetID:    targetID,
 		Firstname:   body.Firstname,
 		Lastname:    body.Lastname,

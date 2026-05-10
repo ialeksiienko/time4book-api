@@ -3,7 +3,7 @@ package resource
 import (
 	"net/http"
 	"time4book/internal/app/adapters/in/http/handlers"
-	"time4book/internal/app/core/usecases/resource"
+	resourcecommands "time4book/internal/app/core/usecases/resource"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -24,6 +24,9 @@ func (h *Handler) Delete(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -36,6 +39,7 @@ func (h *Handler) Delete(c *gin.Context) {
 
 	req := &resourcecommands.DeleteRequest{
 		InitiatorID: initiatorID,
+		CompanyID:   companyID,
 		ResourceID:  id,
 	}
 
@@ -53,4 +57,3 @@ func (h *Handler) Delete(c *gin.Context) {
 		Message: "resource deleted",
 	})
 }
-

@@ -74,6 +74,10 @@ func (h *Handler) ListByResource(c *gin.Context) {
 		}
 	}
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+	req.CompanyID = companyID
+
 	res, err := h.commands.ListByResource.Execute(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, handlers.ErrorResponse{

@@ -80,7 +80,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		}
 	}
 
-	activeReservations, err := c.reservationRepo.ActiveByResourceIDInRange(ctx, req.ResourceID, req.StartDate, req.EndDate, nil)
+	activeReservations, err := c.reservationRepo.ActiveByResourceIDInRange(ctx, req.ResourceID, req.CompanyID, req.StartDate, req.EndDate, nil)
 	if err != nil {
 		return nil, fmt.Errorf("check active reservations: %w", err)
 	}

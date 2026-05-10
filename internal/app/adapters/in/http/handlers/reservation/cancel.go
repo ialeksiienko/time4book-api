@@ -34,8 +34,12 @@ func (h *Handler) Cancel(c *gin.Context) {
 		return
 	}
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	req := &reservationcommands.CancelRequest{
 		InitiatorID:   initiatorID,
+		CompanyID:     companyID,
 		ReservationID: id,
 	}
 

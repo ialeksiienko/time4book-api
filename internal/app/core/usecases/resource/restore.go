@@ -12,6 +12,7 @@ import (
 
 type RestoreRequest struct {
 	InitiatorID uuid.UUID
+	CompanyID   uuid.UUID
 	ResourceID  uuid.UUID
 }
 
@@ -48,6 +49,9 @@ func (c *Restore) Execute(ctx context.Context, req *RestoreRequest) (*RestoreRes
 
 	if !initiator.Role().IsDeveloper() {
 		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
+			return nil, user.ErrUnauthorized
+		}
+		if req.CompanyID != res.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

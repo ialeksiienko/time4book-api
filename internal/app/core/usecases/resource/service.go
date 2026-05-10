@@ -14,6 +14,7 @@ import (
 
 type ServiceRequest struct {
 	InitiatorID uuid.UUID
+	CompanyID   uuid.UUID
 	ResourceID  uuid.UUID
 	Reason      string    `validate:"required"`
 	From        time.Time `validate:"required"`
@@ -60,6 +61,9 @@ func (c *Service) Execute(ctx context.Context, req *ServiceRequest) (*ServiceRes
 
 	if !initiator.Role().IsDeveloper() {
 		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
+			return nil, user.ErrUnauthorized
+		}
+		if req.CompanyID != res.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

@@ -7,11 +7,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *ReservationRepo) ListByUserID(ctx context.Context, userID uuid.UUID, page, limit int) ([]*reservation.Reservation, int64, error) {
+func (r *ReservationRepo) ListByUserID(ctx context.Context, userID uuid.UUID, companyID uuid.UUID, page, limit int) ([]*reservation.Reservation, int64, error) {
 	filter := reservation.ListFilter{
-		UserID: &userID,
-		Page:   page,
-		Limit:  limit,
+		UserID:    &userID,
+		CompanyID: &companyID,
+		Page:      page,
+		Limit:     limit,
 	}
 	return r.List(ctx, filter)
 }

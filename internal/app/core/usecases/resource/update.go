@@ -14,6 +14,7 @@ import (
 type UpdateRequest struct {
 	InitiatorID           uuid.UUID
 	ResourceID            uuid.UUID
+	CompanyID             uuid.UUID
 	Name                  string `validate:"required"`
 	Type                  string `validate:"required"`
 	Description           string
@@ -63,6 +64,9 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 
 	if !initiator.Role().IsDeveloper() {
 		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
+			return nil, user.ErrUnauthorized
+		}
+		if req.CompanyID != res.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

@@ -45,6 +45,9 @@ func (h *Handler) Service(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -57,6 +60,7 @@ func (h *Handler) Service(c *gin.Context) {
 
 	req := &resourcecommands.ServiceRequest{
 		InitiatorID: initiatorID,
+		CompanyID:   companyID,
 		ResourceID:  id,
 		Reason:      body.Reason,
 		From:        body.From,

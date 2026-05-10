@@ -12,7 +12,7 @@ import (
 	"time4book/internal/app/adapters/out/postgres"
 	authrepo "time4book/internal/app/adapters/out/postgres/repo/auth"
 	companyrepo "time4book/internal/app/adapters/out/postgres/repo/company"
-	bookingrepo "time4book/internal/app/adapters/out/postgres/repo/reservation"
+	reservationrepo "time4book/internal/app/adapters/out/postgres/repo/reservation"
 	resourcerepo "time4book/internal/app/adapters/out/postgres/repo/resource"
 	userrepo "time4book/internal/app/adapters/out/postgres/repo/user"
 	"time4book/internal/app/config"
@@ -74,9 +74,9 @@ func New() *Facade {
 	authRepo := authrepo.New(db)
 	companyRepo := companyrepo.New(db)
 	resourceRepo := resourcerepo.New(db)
-	bookingRepo := bookingrepo.New(db)
+	reservationRepo := reservationrepo.New(db)
 
-	commands := usecases.New(userRepo, authRepo, companyRepo, resourceRepo, bookingRepo, txManager, jwtManager, validator, logger)
+	commands := usecases.New(userRepo, authRepo, companyRepo, resourceRepo, reservationRepo, txManager, jwtManager, validator, logger)
 
 	return &Facade{
 		commands:   commands,

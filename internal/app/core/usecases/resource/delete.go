@@ -12,6 +12,7 @@ import (
 
 type DeleteRequest struct {
 	InitiatorID uuid.UUID
+	CompanyID   uuid.UUID
 	ResourceID  uuid.UUID
 }
 
@@ -48,6 +49,9 @@ func (c *Delete) Execute(ctx context.Context, req *DeleteRequest) (*DeleteRespon
 
 	if !initiator.Role().IsDeveloper() {
 		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
+			return nil, user.ErrUnauthorized
+		}
+		if req.CompanyID != res.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/in/http/handlers"
-	"time4book/internal/app/core/usecases/resource"
+	resourcecommands "time4book/internal/app/core/usecases/resource"
 	"time4book/pkg/validator"
 
 	"github.com/gin-gonic/gin"
@@ -12,14 +12,13 @@ import (
 )
 
 type CreateRequest struct {
-	CompanyID             uuid.UUID `json:"companyId" binding:"required"`
-	Name                  string    `json:"name" binding:"required"`
-	Type                  string    `json:"type" binding:"required"`
-	Description           string    `json:"description"`
-	Location              string    `json:"location"`
-	MaxReservationMinutes *int      `json:"maxReservationMinutes"`
-	AvailableFrom         *string   `json:"availableFrom"`
-	AvailableTo           *string   `json:"availableTo"`
+	Name                  string  `json:"name" binding:"required"`
+	Type                  string  `json:"type" binding:"required"`
+	Description           string  `json:"description"`
+	Location              string  `json:"location"`
+	MaxReservationMinutes *int    `json:"maxReservationMinutes"`
+	AvailableFrom         *string `json:"availableFrom"`
+	AvailableTo           *string `json:"availableTo"`
 }
 
 type CreateResponse struct {
@@ -53,9 +52,12 @@ func (h *Handler) Create(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	req := &resourcecommands.CreateRequest{
 		InitiatorID:           initiatorID,
-		CompanyID:             body.CompanyID,
+		CompanyID:             companyID,
 		Name:                  body.Name,
 		Type:                  body.Type,
 		Description:           body.Description,
@@ -88,4 +90,3 @@ func (h *Handler) Create(c *gin.Context) {
 		ResourceID: res.ResourceID,
 	})
 }
-

@@ -10,16 +10,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*reservation.Reservation, error) {
+func (r *ReservationRepo) ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, companyID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*reservation.Reservation, error) {
 	q := `SELECT id, user_id, company_id, resource_id, start_date, end_date, description, status, created_at, updated_at 
           FROM reservations 
           WHERE resource_id = $1 
+            AND company_id = $2
             AND status = 'active'
-            AND start_date < $3 AND end_date > $2`
+            AND start_date < $4 AND end_date > $3`
 
-	args := []interface{}{resourceID, from, to}
+	args := []any{resourceID, companyID, from, to}
 	if excludeID != nil {
-		q += ` AND id != $4`
+		q += ` AND id != $5`
 		args = append(args, *excludeID)
 	}
 

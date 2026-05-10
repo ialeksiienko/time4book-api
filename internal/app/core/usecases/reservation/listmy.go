@@ -10,9 +10,10 @@ import (
 )
 
 type ListMyRequest struct {
-	UserID uuid.UUID
-	Page   int
-	Limit  int
+	UserID    uuid.UUID
+	CompanyID uuid.UUID
+	Page      int
+	Limit     int
 }
 
 type ListMyResponse struct {
@@ -36,7 +37,7 @@ func newListMy(
 }
 
 func (c *ListMy) Execute(ctx context.Context, req *ListMyRequest) (*ListMyResponse, error) {
-	res, total, err := c.reservationRepo.ListByUserID(ctx, req.UserID, req.Page, req.Limit)
+	res, total, err := c.reservationRepo.ListByUserID(ctx, req.UserID, req.CompanyID, req.Page, req.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations by user: %w", err)
 	}

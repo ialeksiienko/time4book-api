@@ -58,8 +58,12 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	req := &resourcecommands.UpdateRequest{
 		InitiatorID:           initiatorID,
+		CompanyID:             companyID,
 		ResourceID:            id,
 		Name:                  body.Name,
 		Type:                  body.Type,

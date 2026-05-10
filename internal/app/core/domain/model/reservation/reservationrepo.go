@@ -22,8 +22,8 @@ type ReservationRepo interface {
 	Create(ctx context.Context, r *Reservation) error
 	ByID(ctx context.Context, id uuid.UUID) (*Reservation, error)
 	List(ctx context.Context, f ListFilter) ([]*Reservation, int64, error)
-	ListByResourceID(ctx context.Context, resourceID uuid.UUID, from, to *time.Time, page, limit int) ([]*Reservation, int64, error)
-	ListByUserID(ctx context.Context, userID uuid.UUID, page, limit int) ([]*Reservation, int64, error)
+	ListByResourceID(ctx context.Context, resourceID uuid.UUID, companyID uuid.UUID, from, to *time.Time, page, limit int) ([]*Reservation, int64, error)
+	ListByUserID(ctx context.Context, userID uuid.UUID, companyID uuid.UUID, page, limit int) ([]*Reservation, int64, error)
 	Update(ctx context.Context, r *Reservation) error
-	ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*Reservation, error)
+	ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, companyID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*Reservation, error)
 }

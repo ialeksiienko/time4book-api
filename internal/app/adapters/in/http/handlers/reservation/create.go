@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 	"time4book/internal/app/adapters/in/http/handlers"
-	"time4book/internal/app/core/usecases/reservation"
+	reservationcommands "time4book/internal/app/core/usecases/reservation"
 	"time4book/pkg/validator"
 
 	"github.com/gin-gonic/gin"
@@ -50,8 +50,12 @@ func (h *Handler) Create(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
+
 	req := &reservationcommands.CreateRequest{
 		InitiatorID: initiatorID,
+		CompanyID:   companyID,
 		ResourceID:  body.ResourceID,
 		StartDate:   body.StartDate,
 		EndDate:     body.EndDate,
@@ -81,4 +85,3 @@ func (h *Handler) Create(c *gin.Context) {
 		ReservationID: res.ReservationID,
 	})
 }
-

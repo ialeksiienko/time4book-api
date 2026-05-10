@@ -11,6 +11,7 @@ import (
 
 type DeactivateRequest struct {
 	InitiatorID uuid.UUID
+	CompanyID   uuid.UUID
 	TargetID    uuid.UUID
 }
 
@@ -43,7 +44,10 @@ func (c *Deactivate) Execute(ctx context.Context, req *DeactivateRequest) (*Deac
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == uuid.Nil || target.CompanyID() == uuid.Nil || initiator.CompanyID() != target.CompanyID() {
+		if req.CompanyID == uuid.Nil || initiator.CompanyID() != req.CompanyID {
+			return nil, user.ErrUnauthorized
+		}
+		if target.CompanyID() != req.CompanyID {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

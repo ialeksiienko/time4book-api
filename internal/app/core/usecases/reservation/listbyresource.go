@@ -12,6 +12,7 @@ import (
 
 type ListByResourceRequest struct {
 	ResourceID uuid.UUID
+	CompanyID  uuid.UUID
 	From       *time.Time
 	To         *time.Time
 	Page       int
@@ -39,7 +40,7 @@ func newListByResource(
 }
 
 func (c *ListByResource) Execute(ctx context.Context, req *ListByResourceRequest) (*ListByResourceResponse, error) {
-	res, total, err := c.reservationRepo.ListByResourceID(ctx, req.ResourceID, req.From, req.To, req.Page, req.Limit)
+	res, total, err := c.reservationRepo.ListByResourceID(ctx, req.ResourceID, req.CompanyID, req.From, req.To, req.Page, req.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations by resource: %w", err)
 	}
