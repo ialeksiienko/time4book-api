@@ -36,7 +36,7 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 			authGroup.POST("/logout", authMw, h.AuthHandler.Logout)
 		}
 
-		userGroup := api.Group("/users", authMw)
+		userGroup := api.Group("/users", authMw, companyMw)
 		{
 			userGroup.GET("", h.UserHandler.List)
 			userGroup.POST("", h.UserHandler.Create)
