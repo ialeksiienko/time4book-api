@@ -72,7 +72,7 @@ func RequireCompany() gin.HandlerFunc {
 				return
 			}
 
-			c.Set("companyID", parsedCompanyID)
+			c.Set("companyID", parsedCompanyID.String())
 		}
 		c.Next()
 	}
