@@ -7,6 +7,7 @@ import (
 	"time4book/internal/app/core/ports"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func JWTAuth(tokenManager ports.TokenManager) gin.HandlerFunc {
@@ -39,7 +40,7 @@ func JWTAuth(tokenManager ports.TokenManager) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", userID)
+		c.Set("userID", userID.String())
 		c.Set("role", role)
 		c.Next()
 	}
@@ -49,11 +50,29 @@ func RequireCompany() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		companyID, exists := c.Get("companyID")
 		if !exists || companyID == nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, handlers.ErrorResponse{
-				Status: false,
-				Error:  "company scope required",
-			})
-			return
+			companyIDStr := c.GetHeader("x-company-id")
+			if companyIDStr == "" {
+				companyIDStr = c.Query("companyId")
+			}
+
+			if companyIDStr == "" {
+				c.AbortWithStatusJSON(http.StatusForbidden, handlers.ErrorResponse{
+					Status: false,
+					Error:  "company scope required",
+				})
+				return
+			}
+
+			parsedCompanyID, err := uuid.Parse(companyIDStr)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusBadRequest, handlers.ErrorResponse{
+					Status: false,
+					Error:  "invalid company id",
+				})
+				return
+			}
+
+			c.Set("companyID", parsedCompanyID)
 		}
 		c.Next()
 	}

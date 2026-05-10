@@ -72,8 +72,17 @@ func (j *JWTManager) ValidateToken(tokenStr string) (uuid.UUID, string, error) {
 			return uuid.Nil, "", errors.New("invalid token type")
 		}
 
-		userID, _ := uuid.Parse(claims["sub"].(string))
-		role := claims["role"].(string)
+		sub, ok := claims["sub"].(string)
+		if !ok || sub == "" {
+			return uuid.Nil, "", errors.New("invalid token subject")
+		}
+
+		userID, err := uuid.Parse(sub)
+		if err != nil {
+			return uuid.Nil, "", fmt.Errorf("invalid token subject: %w", err)
+		}
+
+		role, _ := claims["role"].(string)
 		return userID, role, nil
 	}
 
