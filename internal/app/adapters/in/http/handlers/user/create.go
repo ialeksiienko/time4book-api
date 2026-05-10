@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/in/http/handlers"
-	"time4book/internal/app/core/usecases/user"
+	usercommands "time4book/internal/app/core/usecases/user"
 	"time4book/pkg/validator"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +15,8 @@ type CreateRequest struct {
 	Firstname string `json:"firstName" binding:"required"`
 	Lastname  string `json:"lastName" binding:"required"`
 	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required,min=8"`
+	Password  string `json:"password" binding:"required,min=6"`
 	Role      string `json:"role" binding:"required"`
-	CompanyID string `json:"companyId" binding:"required,uuid"`
 }
 
 type CreateResponse struct {
@@ -51,7 +50,8 @@ func (h *Handler) Create(c *gin.Context) {
 	initiatorIDStr := c.GetString("userID")
 	initiatorID, _ := uuid.Parse(initiatorIDStr)
 
-	companyID, _ := uuid.Parse(body.CompanyID)
+	companyIDStr := c.GetString("companyID")
+	companyID, _ := uuid.Parse(companyIDStr)
 
 	req := &usercommands.CreateRequest{
 		InitiatorID: initiatorID,
@@ -86,4 +86,3 @@ func (h *Handler) Create(c *gin.Context) {
 		UserID: res.UserID,
 	})
 }
-
