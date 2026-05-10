@@ -12,7 +12,6 @@ import (
 
 type ListResponse struct {
 	ID                    uuid.UUID `json:"id"`
-	CompanyID             uuid.UUID `json:"companyId"`
 	Name                  string    `json:"name"`
 	Type                  string    `json:"type"`
 	Description           string    `json:"description"`
@@ -67,8 +66,8 @@ func (h *Handler) List(c *gin.Context) {
 		if id, err := uuid.Parse(compID); err == nil {
 			req.CompanyID = id
 		}
-	} else if compContext, exists := c.Get("companyID"); exists {
-		if cid, ok := compContext.(uuid.UUID); ok {
+	} else if compContext := c.GetString("companyID"); compContext != "" {
+		if cid, err := uuid.Parse(compContext); err == nil {
 			req.CompanyID = cid
 		}
 	}
@@ -96,7 +95,6 @@ func (h *Handler) List(c *gin.Context) {
 	for i, r := range res.Resources {
 		items[i] = ListResponse{
 			ID:                    r.ID(),
-			CompanyID:             r.CompanyID(),
 			Name:                  r.Name(),
 			Type:                  r.Type().String(),
 			Description:           r.Description(),

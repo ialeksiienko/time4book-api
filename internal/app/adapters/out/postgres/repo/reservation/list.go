@@ -14,7 +14,7 @@ import (
 func (r *ReservationRepo) List(ctx context.Context, f booking.ListFilter) ([]*booking.Booking, int64, error) {
 	queryBuilder := strings.Builder{}
 	countBuilder := strings.Builder{}
-	args := []interface{}{}
+	args := []any{}
 	argId := 1
 
 	queryBuilder.WriteString(`SELECT r.id, r.user_id, r.resource_id, r.start_date, r.end_date, r.description, r.status, r.created_at, r.updated_at FROM reservations r JOIN resources res ON r.resource_id = res.id WHERE 1=1`)
