@@ -2,8 +2,10 @@ package httpadapter
 
 import (
 	"net/http"
+	"time"
 	"time4book/internal/app/adapters/in/http/handlers"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -11,6 +13,15 @@ import (
 
 func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *gin.Engine {
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -84,7 +95,6 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 		}
 		c.Abort()
 	}))
-
 
 	return r
 }
