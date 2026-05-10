@@ -2007,7 +2007,6 @@
         "user.CreateRequest": {
             "type": "object",
             "required": [
-                "companyId",
                 "email",
                 "firstName",
                 "lastName",
@@ -2015,9 +2014,6 @@
                 "role"
             ],
             "properties": {
-                "companyId": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -2029,7 +2025,7 @@
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 6
                 },
                 "role": {
                     "type": "string"

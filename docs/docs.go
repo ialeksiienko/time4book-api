@@ -2013,7 +2013,6 @@ const docTemplate = `{
         "user.CreateRequest": {
             "type": "object",
             "required": [
-                "companyId",
                 "email",
                 "firstName",
                 "lastName",
@@ -2021,9 +2020,6 @@ const docTemplate = `{
                 "role"
             ],
             "properties": {
-                "companyId": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -2035,7 +2031,7 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 6
                 },
                 "role": {
                     "type": "string"

@@ -420,8 +420,6 @@ definitions:
     type: object
   user.CreateRequest:
     properties:
-      companyId:
-        type: string
       email:
         type: string
       firstName:
@@ -429,12 +427,11 @@ definitions:
       lastName:
         type: string
       password:
-        minLength: 8
+        minLength: 6
         type: string
       role:
         type: string
     required:
-    - companyId
     - email
     - firstName
     - lastName
