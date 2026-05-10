@@ -2,6 +2,7 @@
 CREATE TABLE reservations (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE RESTRICT,
     resource_id UUID NOT NULL REFERENCES resources(id) ON DELETE RESTRICT,
     start_date TIMESTAMPTZ NOT NULL,
     end_date TIMESTAMPTZ NOT NULL,
