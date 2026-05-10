@@ -59,7 +59,7 @@ func (c *Service) Execute(ctx context.Context, req *ServiceRequest) (*ServiceRes
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == nil || *initiator.CompanyID() != res.CompanyID() {
+		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

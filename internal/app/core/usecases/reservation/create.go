@@ -64,7 +64,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		return nil, fmt.Errorf("get resource: %w", err)
 	}
 
-	if initiator.CompanyID() == nil || *initiator.CompanyID() != res.CompanyID() {
+	if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
 		return nil, user.ErrUnauthorized
 	}
 

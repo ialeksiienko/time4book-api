@@ -45,8 +45,8 @@ func (c *Me) Execute(ctx context.Context, req *MeRequest) (*MeResponse, error) {
 	}
 
 	var comp *company.Company
-	if usr.CompanyID() != nil {
-		comp, err = c.companyRepo.ByID(ctx, *usr.CompanyID())
+	if usr.CompanyID() != uuid.Nil {
+		comp, err = c.companyRepo.ByID(ctx, usr.CompanyID())
 		if err != nil {
 			c.log.Error("get company by id", slog.String("error", err.Error()))
 			return nil, fmt.Errorf("get company: %w", err)

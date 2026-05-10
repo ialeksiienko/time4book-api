@@ -20,7 +20,7 @@ func (r *UserRepo) ByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 		Lastname  string
 		Email     string
 		RoleKey   string
-		CompanyID *uuid.UUID
+		CompanyID uuid.UUID
 		Status    string
 		CreatedAt time.Time
 		UpdatedAt *time.Time

@@ -43,7 +43,7 @@ func (c *Deactivate) Execute(ctx context.Context, req *DeactivateRequest) (*Deac
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == nil || target.CompanyID() == nil || *initiator.CompanyID() != *target.CompanyID() {
+		if initiator.CompanyID() == uuid.Nil || target.CompanyID() == uuid.Nil || initiator.CompanyID() != target.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

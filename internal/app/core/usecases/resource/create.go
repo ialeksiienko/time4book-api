@@ -59,7 +59,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == nil || *initiator.CompanyID() != req.CompanyID {
+		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != req.CompanyID {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

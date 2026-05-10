@@ -2,6 +2,7 @@ package usercommands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/auth"
@@ -10,6 +11,11 @@ import (
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
+)
+
+var (
+	ErrCompanyMismatch = errors.New("security violation: company mismatch")
+	ErrRoleNotAllowed  = errors.New("security violation: role not allowed")
 )
 
 type CreateRequest struct {
@@ -27,11 +33,11 @@ type CreateResponse struct {
 }
 
 type Create struct {
-	userRepo user.UserRepo
-	authRepo auth.AuthRepo
-	tx       ports.TxManager
+	userRepo  user.UserRepo
+	authRepo  auth.AuthRepo
+	tx        ports.TxManager
 	validator *validator.Facade
-	log      *slog.Logger
+	log       *slog.Logger
 }
 
 func newCreate(
@@ -61,8 +67,9 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 	}
 
 	roleKey := user.RoleKeyFromString(req.Role)
-	if !initiator.Role().IsDeveloper() && (initiator.CompanyID() == nil || *initiator.CompanyID() != req.CompanyID) {
-		return nil, user.ErrUnauthorized
+	if !initiator.Role().IsDeveloper() && (initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != req.CompanyID) {
+		c.log.Error("create user", slog.String("initiator_role", initiator.Role().String()), slog.String("initiator_company_id", initiator.CompanyID().String()), slog.String("request_company_id", req.CompanyID.String()))
+		return nil, fmt.Errorf("%w: initiator company does not match target company", ErrCompanyMismatch)
 	}
 
 	targetRole, err := user.NewRole(roleKey, roleKey.FriendlyName())
@@ -71,7 +78,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 	}
 
 	if !initiator.CanCreateUserWithRole(targetRole) {
-		return nil, user.ErrUnauthorized
+		return nil, fmt.Errorf("%w: role %q is not allowed for initiator role %q", ErrRoleNotAllowed, targetRole.Key(), initiator.Role().Key())
 	}
 
 	newUser, err := user.NewUser(
@@ -79,7 +86,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		req.Lastname,
 		req.Email,
 		targetRole,
-		&req.CompanyID,
+		req.CompanyID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("new user: %w", err)

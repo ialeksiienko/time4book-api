@@ -10,7 +10,7 @@ import (
 )
 
 type ListRequest struct {
-	CompanyID *uuid.UUID
+	CompanyID uuid.UUID
 	Search    *string
 	Role      *string
 	Status    *string

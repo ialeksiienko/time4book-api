@@ -47,7 +47,7 @@ func (c *Restore) Execute(ctx context.Context, req *RestoreRequest) (*RestoreRes
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == nil || *initiator.CompanyID() != res.CompanyID() {
+		if initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != res.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {

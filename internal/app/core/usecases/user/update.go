@@ -51,7 +51,7 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == nil || target.CompanyID() == nil || *initiator.CompanyID() != *target.CompanyID() {
+		if initiator.CompanyID() == uuid.Nil || target.CompanyID() == uuid.Nil || initiator.CompanyID() != target.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() && initiator.ID() != target.ID() {
@@ -84,4 +84,3 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 
 	return &UpdateResponse{}, nil
 }
-

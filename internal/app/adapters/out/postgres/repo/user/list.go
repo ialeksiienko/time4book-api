@@ -14,17 +14,17 @@ import (
 func (r *UserRepo) List(ctx context.Context, f user.ListFilter) ([]*user.User, int64, error) {
 	queryBuilder := strings.Builder{}
 	countBuilder := strings.Builder{}
-	args := []interface{}{}
+	args := []any{}
 	argId := 1
 
 	queryBuilder.WriteString(`SELECT id, firstname, lastname, email, role_id, company_id, status, created_at, updated_at FROM users WHERE 1=1`)
 	countBuilder.WriteString(`SELECT count(id) FROM users WHERE 1=1`)
 
-	if f.CompanyID != nil {
+	if f.CompanyID != uuid.Nil {
 		whereClause := fmt.Sprintf(` AND company_id = $%d`, argId)
 		queryBuilder.WriteString(whereClause)
 		countBuilder.WriteString(whereClause)
-		args = append(args, *f.CompanyID)
+		args = append(args, f.CompanyID)
 		argId++
 	}
 
@@ -79,7 +79,7 @@ func (r *UserRepo) List(ctx context.Context, f user.ListFilter) ([]*user.User, i
 			Lastname  string
 			Email     string
 			RoleKey   string
-			CompanyID *uuid.UUID
+			CompanyID uuid.UUID
 			Status    string
 			CreatedAt time.Time
 			UpdatedAt *time.Time

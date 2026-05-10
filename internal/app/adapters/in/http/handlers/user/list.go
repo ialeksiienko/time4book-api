@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"time4book/internal/app/adapters/in/http/handlers"
-	"time4book/internal/app/core/usecases/user"
+	usercommands "time4book/internal/app/core/usecases/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -61,11 +61,11 @@ func (h *Handler) List(c *gin.Context) {
 
 	if compID := c.Query("companyId"); compID != "" {
 		if id, err := uuid.Parse(compID); err == nil {
-			req.CompanyID = &id
+			req.CompanyID = id
 		}
-	} else if compContext, exists := c.Get("companyID"); exists {
-		if cid, ok := compContext.(uuid.UUID); ok {
-			req.CompanyID = &cid
+	} else if compContext := c.GetString("companyID"); compContext != "" {
+		if cid, err := uuid.Parse(compContext); err == nil {
+			req.CompanyID = cid
 		}
 	}
 
@@ -108,4 +108,3 @@ func (h *Handler) List(c *gin.Context) {
 		Limit:  req.Limit,
 	})
 }
-

@@ -82,7 +82,7 @@ func (r *Register) Execute(ctx context.Context, req *RegisterRequest) (*Register
 		req.Lastname,
 		req.Email,
 		role,
-		nil,
+		uuid.Nil, // company id will be set after company creation
 	)
 	if err != nil {
 		r.log.Error("new user", slog.String("error", err.Error()))
@@ -124,7 +124,7 @@ func (r *Register) Execute(ctx context.Context, req *RegisterRequest) (*Register
 	}
 
 	compID := comp.ID()
-	usr.SetCompanyID(&compID)
+	usr.SetCompanyID(compID)
 
 	txErr := r.tx.ReadCommitted(ctx, func(txCtx context.Context) error {
 		compErr := r.companyRepo.Create(txCtx, comp)

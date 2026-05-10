@@ -12,12 +12,12 @@ import (
 type MeResponse struct {
 	Status bool `json:"status"`
 	User   struct {
-		ID        uuid.UUID  `json:"id"`
-		Firstname string     `json:"firstName"`
-		Lastname  string     `json:"lastName"`
-		Email     string     `json:"email"`
-		Role      string     `json:"role"`
-		CompanyID *uuid.UUID `json:"companyId,omitempty"`
+		ID        uuid.UUID `json:"id"`
+		Firstname string    `json:"firstName"`
+		Lastname  string    `json:"lastName"`
+		Email     string    `json:"email"`
+		Role      string    `json:"role"`
+		CompanyID uuid.UUID `json:"companyId,omitempty"`
 	} `json:"user"`
 	Company *struct {
 		ID       uuid.UUID `json:"id"`

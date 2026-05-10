@@ -7,7 +7,7 @@ import (
 )
 
 type ListFilter struct {
-	CompanyID *uuid.UUID
+	CompanyID uuid.UUID
 	Search    *string
 	Role      *RoleKey
 	Status    *UserStatus
