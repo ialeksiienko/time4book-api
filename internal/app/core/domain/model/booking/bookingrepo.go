@@ -26,4 +26,5 @@ type BookingRepo interface {
 	ListByUserID(ctx context.Context, userID uuid.UUID, page, limit int) ([]*Booking, int64, error)
 	Update(ctx context.Context, b *Booking) error
 	ActiveByResourceIDInRange(ctx context.Context, resourceID uuid.UUID, from, to time.Time, excludeID *uuid.UUID) ([]*Booking, error)
+	DeleteByCompanyID(ctx context.Context, companyID uuid.UUID) error
 }

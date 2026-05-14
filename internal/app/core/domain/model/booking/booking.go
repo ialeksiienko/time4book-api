@@ -70,15 +70,15 @@ func (b *Booking) Complete() error {
 	return nil
 }
 
-func (b *Booking) ID() uuid.UUID           { return b.id }
-func (b *Booking) UserID() uuid.UUID       { return b.userID }
-func (b *Booking) ResourceID() uuid.UUID   { return b.resourceID }
-func (b *Booking) Description() *string    { return b.description }
-func (b *Booking) StartDate() time.Time    { return b.startDate }
-func (b *Booking) EndDate() time.Time      { return b.endDate }
-func (b *Booking) Status() BookingStatus   { return b.status }
-func (b *Booking) CreatedAt() time.Time    { return b.createdAt }
-func (b *Booking) UpdatedAt() time.Time    { return b.updatedAt }
+func (b *Booking) ID() uuid.UUID         { return b.id }
+func (b *Booking) UserID() uuid.UUID     { return b.userID }
+func (b *Booking) ResourceID() uuid.UUID { return b.resourceID }
+func (b *Booking) Description() *string  { return b.description }
+func (b *Booking) StartDate() time.Time  { return b.startDate }
+func (b *Booking) EndDate() time.Time    { return b.endDate }
+func (b *Booking) Status() BookingStatus { return b.status }
+func (b *Booking) CreatedAt() time.Time  { return b.createdAt }
+func (b *Booking) UpdatedAt() time.Time  { return b.updatedAt }
 func (b *Booking) CancelledAt() *time.Time {
 	if b.status == StatusCancelled || b.status == StatusCancelledByAdmin {
 		return &b.updatedAt

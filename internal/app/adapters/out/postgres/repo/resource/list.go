@@ -2,6 +2,7 @@ package resourcerepo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -15,39 +16,53 @@ func (r *ResourceRepo) List(ctx context.Context, f resource.ListFilter) ([]*reso
 	queryBuilder := strings.Builder{}
 	countBuilder := strings.Builder{}
 	args := []interface{}{}
-	argId := 1
+	argID := 1
 
-	queryBuilder.WriteString(`SELECT id, company_id, name, type, description, location, max_reservation_minutes, available_from, available_to, status, unavailable_from, unavailable_to, unavailable_reason, created_at, updated_at FROM resources WHERE company_id = $1`)
-	countBuilder.WriteString(`SELECT count(id) FROM resources WHERE company_id = $1`)
-	args = append(args, f.CompanyID)
-	argId++
+	baseFrom := ` FROM resources r
+LEFT JOIN company_resource_types crt ON crt.id = r.company_resource_type_id
+WHERE 1=1`
+
+	queryBuilder.WriteString(`SELECT r.id, r.company_id, r.name, r.type, r.description, r.location, r.max_reservation_minutes, r.available_from, r.available_to, r.status, r.unavailable_from, r.unavailable_to, r.unavailable_reason, r.created_at, r.updated_at,
+r.company_resource_type_id, crt.name, crt.icon_key`)
+	queryBuilder.WriteString(baseFrom)
+
+	countBuilder.WriteString(`SELECT count(r.id)`)
+	countBuilder.WriteString(baseFrom)
+
+	if f.CompanyID != nil {
+		whereClause := fmt.Sprintf(` AND r.company_id = $%d`, argID)
+		queryBuilder.WriteString(whereClause)
+		countBuilder.WriteString(whereClause)
+		args = append(args, *f.CompanyID)
+		argID++
+	}
 
 	if f.Type != nil {
-		whereClause := fmt.Sprintf(` AND type = $%d`, argId)
+		whereClause := fmt.Sprintf(` AND r.type = $%d`, argID)
 		queryBuilder.WriteString(whereClause)
 		countBuilder.WriteString(whereClause)
 		args = append(args, f.Type.String())
-		argId++
+		argID++
 	}
 
 	if f.Status != nil {
-		whereClause := fmt.Sprintf(` AND status = $%d`, argId)
+		whereClause := fmt.Sprintf(` AND r.status = $%d`, argID)
 		queryBuilder.WriteString(whereClause)
 		countBuilder.WriteString(whereClause)
 		args = append(args, f.Status.String())
-		argId++
+		argID++
 	}
 
 	if f.Search != nil && *f.Search != "" {
 		searchTerm := "%" + *f.Search + "%"
-		whereClause := fmt.Sprintf(` AND (name ILIKE $%d OR description ILIKE $%d OR location ILIKE $%d)`, argId, argId, argId)
+		whereClause := fmt.Sprintf(` AND (r.name ILIKE $%d OR r.description ILIKE $%d OR r.location ILIKE $%d)`, argID, argID, argID)
 		queryBuilder.WriteString(whereClause)
 		countBuilder.WriteString(whereClause)
 		args = append(args, searchTerm)
-		argId++
+		argID++
 	}
 
-	queryBuilder.WriteString(fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, argId, argId+1))
+	queryBuilder.WriteString(fmt.Sprintf(` ORDER BY r.created_at DESC LIMIT $%d OFFSET $%d`, argID, argID+1))
 	qArgs := append(args, f.Limit, (f.Page-1)*f.Limit)
 
 	q := queryBuilder.String()
@@ -68,21 +83,24 @@ func (r *ResourceRepo) List(ctx context.Context, f resource.ListFilter) ([]*reso
 	var res []*resource.Resource
 	for rows.Next() {
 		var row struct {
-			ID                    uuid.UUID
-			CompanyID             uuid.UUID
-			Name                  string
-			Type                  string
-			Description           string
-			Location              string
-			MaxReservationMinutes *int
-			AvailableFrom         *string
-			AvailableTo           *string
-			Status                string
-			UnavailableFrom       *time.Time
-			UnavailableTo         *time.Time
-			UnavailableReason     *string
-			CreatedAt             time.Time
-			UpdatedAt             time.Time
+			ID                      uuid.UUID
+			CompanyID               uuid.UUID
+			Name                    string
+			Type                    string
+			Description             string
+			Location                string
+			MaxReservationMinutes   *int
+			AvailableFrom           *string
+			AvailableTo             *string
+			Status                  string
+			UnavailableFrom         *time.Time
+			UnavailableTo           *time.Time
+			UnavailableReason       *string
+			CreatedAt               time.Time
+			UpdatedAt               time.Time
+			CompanyResourceTypeIDNu uuid.NullUUID
+			CrtName                 sql.NullString
+			CrtIconKey              sql.NullString
 		}
 
 		if err := rows.Scan(
@@ -101,8 +119,27 @@ func (r *ResourceRepo) List(ctx context.Context, f resource.ListFilter) ([]*reso
 			&row.UnavailableReason,
 			&row.CreatedAt,
 			&row.UpdatedAt,
+			&row.CompanyResourceTypeIDNu,
+			&row.CrtName,
+			&row.CrtIconKey,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan resource: %w", err)
+		}
+
+		var companyCRTID *uuid.UUID
+		if row.CompanyResourceTypeIDNu.Valid {
+			u := row.CompanyResourceTypeIDNu.UUID
+			companyCRTID = &u
+		}
+		var customName *string
+		if row.CrtName.Valid {
+			n := row.CrtName.String
+			customName = &n
+		}
+		var customIcon *string
+		if row.CrtIconKey.Valid {
+			i := row.CrtIconKey.String
+			customIcon = &i
 		}
 
 		res = append(res, resource.Reconstitute(&resource.Props{
@@ -110,6 +147,9 @@ func (r *ResourceRepo) List(ctx context.Context, f resource.ListFilter) ([]*reso
 			CompanyID:             row.CompanyID,
 			Name:                  row.Name,
 			ResourceType:          row.Type,
+			CompanyResourceTypeID: companyCRTID,
+			CustomTypeName:        customName,
+			CustomTypeIconKey:     customIcon,
 			Description:           row.Description,
 			Location:              row.Location,
 			MaxReservationMinutes: row.MaxReservationMinutes,

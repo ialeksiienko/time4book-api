@@ -62,6 +62,14 @@ func (h *Handler) Login(c *gin.Context) {
 			return
 		}
 
+		if errors.Is(err, authcommands.ErrCompanyBlocked) {
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{
+				Status: false,
+				Error:  err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusUnauthorized, handlers.ErrorResponse{
 			Status: false,
 			Error:  "invalid email or password",

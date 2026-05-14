@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+
+	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/pkg/validator"
@@ -16,6 +18,7 @@ type CreateRequest struct {
 	CompanyID             uuid.UUID
 	Name                  string `validate:"required"`
 	Type                  string `validate:"required"`
+	CompanyResourceTypeID *uuid.UUID
 	Description           string
 	Location              string
 	MaxReservationMinutes *int
@@ -28,23 +31,26 @@ type CreateResponse struct {
 }
 
 type Create struct {
-	userRepo     user.UserRepo
-	resourceRepo resource.ResourceRepo
-	validator    *validator.Facade
-	log          *slog.Logger
+	userRepo        user.UserRepo
+	resourceRepo    resource.ResourceRepo
+	companyTypeRepo companyresourcetype.Repo
+	validator       *validator.Facade
+	log             *slog.Logger
 }
 
 func newCreate(
 	urepo user.UserRepo,
 	resrepo resource.ResourceRepo,
+	companyTypeRepo companyresourcetype.Repo,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Create {
 	return &Create{
-		userRepo:     urepo,
-		resourceRepo: resrepo,
-		validator:    v,
-		log:          l,
+		userRepo:        urepo,
+		resourceRepo:    resrepo,
+		companyTypeRepo: companyTypeRepo,
+		validator:       v,
+		log:             l,
 	}
 }
 
@@ -67,12 +73,22 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		}
 	}
 
-	resType := resource.ResourceType(req.Type)
+	rt := resource.ResourceType(req.Type)
+	if rt != resource.TypeCustom {
+		return nil, fmt.Errorf("only local company resource types are supported")
+	}
+	if req.CompanyResourceTypeID == nil {
+		return nil, fmt.Errorf("company_resource_type_id is required when type is custom")
+	}
+	if _, err := c.companyTypeRepo.ByIDAndCompany(ctx, *req.CompanyResourceTypeID, req.CompanyID); err != nil {
+		return nil, fmt.Errorf("company resource type: %w", err)
+	}
 
 	res, err := resource.NewResource(
 		req.CompanyID,
 		req.Name,
-		resType,
+		rt,
+		req.CompanyResourceTypeID,
 		req.Description,
 		req.Location,
 		req.MaxReservationMinutes,

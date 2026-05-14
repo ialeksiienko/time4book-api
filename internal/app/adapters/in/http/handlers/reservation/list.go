@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 	"time4book/internal/app/adapters/in/http/handlers"
+	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/usecases/reservation"
 
 	"github.com/gin-gonic/gin"
@@ -64,15 +65,24 @@ func (h *Handler) List(c *gin.Context) {
 		}
 	}
 
-	if compID := c.Query("companyId"); compID != "" {
-		if id, err := uuid.Parse(compID); err == nil {
-			req.CompanyID = &id
+	role := c.GetString("role")
+	var companyScoped *uuid.UUID
+	if role == string(user.RoleDeveloperKey) {
+		if compID := c.Query("companyId"); compID != "" {
+			if id, err := uuid.Parse(compID); err == nil {
+				companyScoped = &id
+			}
+		} else if compContext, exists := c.Get("companyID"); exists {
+			if cid, ok := compContext.(uuid.UUID); ok {
+				companyScoped = &cid
+			}
 		}
 	} else if compContext, exists := c.Get("companyID"); exists {
 		if cid, ok := compContext.(uuid.UUID); ok {
-			req.CompanyID = &cid
+			companyScoped = &cid
 		}
 	}
+	req.CompanyID = companyScoped
 
 	if userID := c.Query("userId"); userID != "" {
 		if id, err := uuid.Parse(userID); err == nil {
@@ -133,4 +143,3 @@ func (h *Handler) List(c *gin.Context) {
 		Limit:  req.Limit,
 	})
 }
-

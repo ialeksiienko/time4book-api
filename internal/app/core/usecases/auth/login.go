@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/auth"
+	"time4book/internal/app/core/domain/model/company"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/ports"
 	"time4book/pkg/validator"
@@ -27,6 +28,7 @@ type LoginResponse struct {
 type Login struct {
 	userRepo user.UserRepo
 	authRepo auth.AuthRepo
+	companyRepo company.CompanyRepo
 
 	token ports.TokenManager
 
@@ -37,6 +39,7 @@ type Login struct {
 func newLogin(
 	userRepo user.UserRepo,
 	authRepo auth.AuthRepo,
+	companyRepo company.CompanyRepo,
 
 	token ports.TokenManager,
 
@@ -44,11 +47,12 @@ func newLogin(
 	log *slog.Logger,
 ) *Login {
 	return &Login{
-		userRepo:  userRepo,
-		authRepo:  authRepo,
-		token:     token,
-		validator: validator,
-		log:       log,
+		userRepo:   userRepo,
+		authRepo:   authRepo,
+		companyRepo: companyRepo,
+		token:      token,
+		validator:  validator,
+		log:        log,
 	}
 }
 
@@ -72,6 +76,10 @@ func (l *Login) Execute(ctx context.Context, req *LoginRequest) (*LoginResponse,
 	user, err := l.userRepo.ByID(ctx, creds.UserID())
 	if err != nil {
 		return nil, fmt.Errorf("get user by id: %w", err)
+	}
+
+	if err := ensureCompanyAccess(ctx, l.companyRepo, user); err != nil {
+		return nil, err
 	}
 
 	accessToken, genErr0 := l.token.GenerateToken(user.ID(), user.Role().String(), ports.AccessToken)

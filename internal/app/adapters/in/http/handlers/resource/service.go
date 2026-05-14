@@ -65,6 +65,13 @@ func (h *Handler) Service(c *gin.Context) {
 
 	_, err = h.commands.Service.Execute(c.Request.Context(), req)
 	if err != nil {
+		if errors.Is(err, resourcecommands.ErrInvalidServiceWindow) {
+			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
+				Status: false,
+				Error:  err.Error(),
+			})
+			return
+		}
 		var validationErr validator.ValidationErrors
 		if errors.As(err, &validationErr) {
 			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
@@ -86,4 +93,3 @@ func (h *Handler) Service(c *gin.Context) {
 		Message: "resource marked in service",
 	})
 }
-

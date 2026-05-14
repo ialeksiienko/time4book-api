@@ -76,4 +76,3 @@ func (h *Handler) Update(c *gin.Context) {
 		Message: "company updated",
 	})
 }
-

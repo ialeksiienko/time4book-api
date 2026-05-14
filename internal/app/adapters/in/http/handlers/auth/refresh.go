@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/in/http/handlers"
 	authcommands "time4book/internal/app/core/usecases/auth"
@@ -45,6 +46,13 @@ func (h *Handler) Refresh(c *gin.Context) {
 
 	res, err := h.commands.Refresh.Execute(c.Request.Context(), req)
 	if err != nil {
+		if errors.Is(err, authcommands.ErrCompanyBlocked) {
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{
+				Status: false,
+				Error:  err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusUnauthorized, handlers.ErrorResponse{
 			Status: false,
 			Error:  err.Error(),

@@ -1,8 +1,10 @@
 package company
 
 import (
+	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/in/http/handlers"
+	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/usecases/company"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +43,13 @@ func (h *Handler) Block(c *gin.Context) {
 
 	_, err = h.commands.Block.Execute(c.Request.Context(), req)
 	if err != nil {
+		if errors.Is(err, user.ErrUnauthorized) {
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{
+				Status: false,
+				Error:  err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, handlers.ErrorResponse{
 			Status: false,
 			Error:  err.Error(),
@@ -53,4 +62,3 @@ func (h *Handler) Block(c *gin.Context) {
 		Message: "company blocked",
 	})
 }
-

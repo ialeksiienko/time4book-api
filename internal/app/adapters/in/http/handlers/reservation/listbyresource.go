@@ -105,4 +105,3 @@ func (h *Handler) ListByResource(c *gin.Context) {
 		Limit:  req.Limit,
 	})
 }
-

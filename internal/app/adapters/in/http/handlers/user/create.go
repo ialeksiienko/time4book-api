@@ -86,4 +86,3 @@ func (h *Handler) Create(c *gin.Context) {
 		UserID: res.UserID,
 	})
 }
-

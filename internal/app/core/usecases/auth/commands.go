@@ -28,9 +28,9 @@ func NewFacade(
 ) *Facade {
 	return &Facade{
 		Register: newRegister(urepo, arepo, crepo, tx, token, v, log),
-		Login:    newLogin(urepo, arepo, token, v, log),
+		Login:    newLogin(urepo, arepo, crepo, token, v, log),
 		Me:       newMe(urepo, crepo, log),
 		Logout:   newLogout(arepo, log),
-		Refresh:  newRefresh(urepo, arepo, token, v, log),
+		Refresh:  newRefresh(urepo, arepo, crepo, token, v, log),
 	}
 }

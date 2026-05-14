@@ -27,11 +27,11 @@ type CreateResponse struct {
 }
 
 type Create struct {
-	userRepo user.UserRepo
-	authRepo auth.AuthRepo
-	tx       ports.TxManager
+	userRepo  user.UserRepo
+	authRepo  auth.AuthRepo
+	tx        ports.TxManager
 	validator *validator.Facade
-	log      *slog.Logger
+	log       *slog.Logger
 }
 
 func newCreate(

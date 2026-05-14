@@ -10,7 +10,7 @@ import (
 )
 
 type ListRequest struct {
-	CompanyID uuid.UUID
+	CompanyID *uuid.UUID
 	Page      int
 	Limit     int
 	Type      *string
@@ -19,7 +19,7 @@ type ListRequest struct {
 }
 
 type ListResponse struct {
-	Resources []resource.Resource
+	Resources []*resource.Resource
 	Total     int64
 }
 
@@ -61,13 +61,8 @@ func (c *List) Execute(ctx context.Context, req *ListRequest) (*ListResponse, er
 		return nil, fmt.Errorf("list resources: %w", err)
 	}
 
-	resources := make([]resource.Resource, len(res))
-	for i, r := range res {
-		resources[i] = *r
-	}
-
 	return &ListResponse{
-		Resources: resources,
+		Resources: res,
 		Total:     total,
 	}, nil
 }

@@ -53,4 +53,3 @@ func (h *Handler) Cancel(c *gin.Context) {
 		Message: "reservation cancelled",
 	})
 }
-

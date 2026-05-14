@@ -2,15 +2,26 @@ package httpadapter
 
 import (
 	"net/http"
+	"time"
 	"time4book/internal/app/adapters/in/http/handlers"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *gin.Engine {
+func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc, activeCompanyMw gin.HandlerFunc) *gin.Engine {
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -21,11 +32,11 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 			authGroup.POST("/register", h.AuthHandler.Register)
 			authGroup.POST("/login", h.AuthHandler.Login)
 			authGroup.POST("/refresh", h.AuthHandler.Refresh)
-			authGroup.GET("/me", authMw, h.AuthHandler.Me)
+			authGroup.GET("/me", authMw, activeCompanyMw, h.AuthHandler.Me)
 			authGroup.POST("/logout", authMw, h.AuthHandler.Logout)
 		}
 
-		userGroup := api.Group("/users", authMw)
+		userGroup := api.Group("/users", authMw, activeCompanyMw, companyMw)
 		{
 			userGroup.GET("", h.UserHandler.List)
 			userGroup.POST("", h.UserHandler.Create)
@@ -33,16 +44,18 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 			userGroup.DELETE("/:id", h.UserHandler.Deactivate)
 		}
 
-		companyGroup := api.Group("/companies", authMw)
+		companyGroup := api.Group("/companies", authMw, activeCompanyMw)
 		{
 			companyGroup.POST("", h.CompanyHandler.Create)
 			companyGroup.GET("", h.CompanyHandler.List)
 			companyGroup.GET("/:id", h.CompanyHandler.GetByID)
 			companyGroup.PUT("/:id", h.CompanyHandler.Update)
+			companyGroup.DELETE("/:id", h.CompanyHandler.Delete)
 			companyGroup.POST("/:id/block", h.CompanyHandler.Block)
+			companyGroup.POST("/:id/unblock", h.CompanyHandler.Unblock)
 		}
 
-		resourceGroup := api.Group("/resources", authMw, companyMw)
+		resourceGroup := api.Group("/resources", authMw, activeCompanyMw, companyMw)
 		{
 			resourceGroup.GET("", h.ResourceHandler.List)
 			resourceGroup.POST("", h.ResourceHandler.Create)
@@ -53,7 +66,15 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 			resourceGroup.POST("/:id/restore", h.ResourceHandler.Restore)
 		}
 
-		reservationGroup := api.Group("/reservations", authMw, companyMw)
+		crtGroup := api.Group("/company-resource-types", authMw, activeCompanyMw, companyMw)
+		{
+			crtGroup.GET("", h.CompanyResourceTypeHandler.List)
+			crtGroup.POST("", h.CompanyResourceTypeHandler.Create)
+			crtGroup.PUT("/:id", h.CompanyResourceTypeHandler.Update)
+			crtGroup.DELETE("/:id", h.CompanyResourceTypeHandler.Delete)
+		}
+
+		reservationGroup := api.Group("/reservations", authMw, activeCompanyMw, companyMw)
 		{
 			reservationGroup.GET("", h.ReservationHandler.List)
 			reservationGroup.POST("", h.ReservationHandler.Create)
@@ -84,7 +105,6 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 		}
 		c.Abort()
 	}))
-
 
 	return r
 }

@@ -2,6 +2,7 @@ package resourcecommands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/google/uuid"
 )
+
+var ErrInvalidServiceWindow = errors.New("service end must be after start")
 
 type ServiceRequest struct {
 	InitiatorID uuid.UUID
@@ -65,6 +68,10 @@ func (c *Service) Execute(ctx context.Context, req *ServiceRequest) (*ServiceRes
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {
 			return nil, user.ErrUnauthorized
 		}
+	}
+
+	if req.To != nil && !req.To.After(req.From) {
+		return nil, ErrInvalidServiceWindow
 	}
 
 	res.MarkInService(req.Reason, req.From, req.To)

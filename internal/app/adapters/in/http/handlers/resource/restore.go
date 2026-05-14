@@ -53,4 +53,3 @@ func (h *Handler) Restore(c *gin.Context) {
 		Message: "resource restored",
 	})
 }
-

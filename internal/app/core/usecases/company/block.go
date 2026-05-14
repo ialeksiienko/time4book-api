@@ -41,13 +41,18 @@ func (c *Block) Execute(ctx context.Context, req *BlockRequest) (*BlockResponse,
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	if !initiator.Role().IsDeveloper() {
-		return nil, user.ErrUnauthorized
-	}
-
 	comp, err := c.companyRepo.ByID(ctx, req.CompanyID)
 	if err != nil {
 		return nil, fmt.Errorf("get company: %w", err)
+	}
+
+	if !initiator.Role().IsDeveloper() {
+		if initiator.CompanyID() == nil || *initiator.CompanyID() != req.CompanyID {
+			return nil, user.ErrUnauthorized
+		}
+		if !initiator.Role().IsOwner() || initiator.ID() != comp.OwnerID() {
+			return nil, user.ErrUnauthorized
+		}
 	}
 
 	comp.Block()

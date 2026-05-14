@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+
+	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/pkg/validator"
@@ -16,6 +18,7 @@ type UpdateRequest struct {
 	ResourceID            uuid.UUID
 	Name                  string `validate:"required"`
 	Type                  string `validate:"required"`
+	CompanyResourceTypeID *uuid.UUID
 	Description           string
 	Location              string
 	MaxReservationMinutes *int
@@ -26,23 +29,26 @@ type UpdateRequest struct {
 type UpdateResponse struct{}
 
 type Update struct {
-	userRepo     user.UserRepo
-	resourceRepo resource.ResourceRepo
-	validator    *validator.Facade
-	log          *slog.Logger
+	userRepo        user.UserRepo
+	resourceRepo    resource.ResourceRepo
+	companyTypeRepo companyresourcetype.Repo
+	validator       *validator.Facade
+	log             *slog.Logger
 }
 
 func newUpdate(
 	urepo user.UserRepo,
 	resrepo resource.ResourceRepo,
+	companyTypeRepo companyresourcetype.Repo,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Update {
 	return &Update{
-		userRepo:     urepo,
-		resourceRepo: resrepo,
-		validator:    v,
-		log:          l,
+		userRepo:        urepo,
+		resourceRepo:    resrepo,
+		companyTypeRepo: companyTypeRepo,
+		validator:       v,
+		log:             l,
 	}
 }
 
@@ -56,13 +62,13 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	res, err := c.resourceRepo.ByID(ctx, req.ResourceID)
+	old, err := c.resourceRepo.ByID(ctx, req.ResourceID)
 	if err != nil {
 		return nil, fmt.Errorf("get resource: %w", err)
 	}
 
 	if !initiator.Role().IsDeveloper() {
-		if initiator.CompanyID() == nil || *initiator.CompanyID() != res.CompanyID() {
+		if initiator.CompanyID() == nil || *initiator.CompanyID() != old.CompanyID() {
 			return nil, user.ErrUnauthorized
 		}
 		if !initiator.Role().IsOwner() && !initiator.Role().IsAdmin() {
@@ -70,28 +76,43 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 		}
 	}
 
+	rt := resource.ResourceType(req.Type)
+	if rt != resource.TypeCustom {
+		return nil, fmt.Errorf("only local company resource types are supported")
+	}
+	if req.CompanyResourceTypeID == nil {
+		return nil, fmt.Errorf("company_resource_type_id is required when type is custom")
+	}
+	if _, err := c.companyTypeRepo.ByIDAndCompany(ctx, *req.CompanyResourceTypeID, old.CompanyID()); err != nil {
+		return nil, fmt.Errorf("company resource type: %w", err)
+	}
+
 	props := &resource.Props{
-		ID:                    res.ID(),
-		CompanyID:             res.CompanyID(),
+		ID:                    old.ID(),
+		CompanyID:             old.CompanyID(),
 		Name:                  req.Name,
 		ResourceType:          req.Type,
+		CompanyResourceTypeID: req.CompanyResourceTypeID,
 		Description:           req.Description,
 		Location:              req.Location,
 		MaxReservationMinutes: req.MaxReservationMinutes,
 		AvailableFrom:         req.AvailableFrom,
 		AvailableTo:           req.AvailableTo,
-		Status:                res.Status().String(),
-		UnavailableFrom:       res.UnavailableFrom(),
-		UnavailableTo:         res.UnavailableTo(),
-		UnavailableReason:     res.UnavailableReason(),
-		CreatedAt:             res.CreatedAt(),
+		Status:                old.Status().String(),
+		UnavailableFrom:       old.UnavailableFrom(),
+		UnavailableTo:         old.UnavailableTo(),
+		UnavailableReason:     old.UnavailableReason(),
+		CreatedAt:             old.CreatedAt(),
+		UpdatedAt:             old.UpdatedAt(),
 	}
 
 	updatedRes := resource.Reconstitute(props)
+
 	updatedRes.Restore()
-	if res.Status() == resource.StatusInService {
-		updatedRes.MarkInService(*res.UnavailableReason(), *res.UnavailableFrom(), res.UnavailableTo())
-	} else if res.Status() == resource.StatusInactive {
+
+	if old.Status() == resource.StatusInService {
+		updatedRes.MarkInService(*old.UnavailableReason(), *old.UnavailableFrom(), old.UnavailableTo())
+	} else if old.Status() == resource.StatusInactive {
 		updatedRes.Deactivate()
 	}
 

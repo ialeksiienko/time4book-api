@@ -33,6 +33,7 @@ type CreateResponse struct {
 // @Param        request body CreateRequest true "Reservation details"
 // @Success      201  {object}  CreateResponse
 // @Failure      400  {object}  handlers.ErrorResponse
+// @Failure      409  {object}  handlers.ErrorResponse
 // @Failure      500  {object}  handlers.ErrorResponse
 // @Security     BearerAuth
 // @Router       /reservations [post]
@@ -69,6 +70,22 @@ func (h *Handler) Create(c *gin.Context) {
 			return
 		}
 
+		if errors.Is(err, reservationcommands.ErrSlotAlreadyTaken) {
+			c.JSON(http.StatusConflict, handlers.ErrorResponse{
+				Status: false,
+				Error:  err.Error(),
+			})
+			return
+		}
+
+		if errors.Is(err, reservationcommands.ErrReservationStartTooFarInPast) {
+			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
+				Status: false,
+				Error:  err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, handlers.ErrorResponse{
 			Status: false,
 			Error:  err.Error(),
@@ -81,4 +98,3 @@ func (h *Handler) Create(c *gin.Context) {
 		ReservationID: res.ReservationID,
 	})
 }
-

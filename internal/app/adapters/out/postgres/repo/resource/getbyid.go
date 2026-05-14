@@ -2,6 +2,7 @@ package resourcerepo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 	"time4book/internal/app/adapters/out/postgres"
@@ -11,25 +12,32 @@ import (
 )
 
 func (r *ResourceRepo) ByID(ctx context.Context, id uuid.UUID) (*resource.Resource, error) {
-	q := `SELECT id, company_id, name, type, description, location, max_reservation_minutes, available_from, available_to, status, unavailable_from, unavailable_to, unavailable_reason, created_at, updated_at 
-          FROM resources WHERE id = $1`
+	q := `
+SELECT r.id, r.company_id, r.name, r.type, r.description, r.location, r.max_reservation_minutes, r.available_from, r.available_to, r.status, r.unavailable_from, r.unavailable_to, r.unavailable_reason, r.created_at, r.updated_at,
+       r.company_resource_type_id, crt.name, crt.icon_key
+FROM resources r
+LEFT JOIN company_resource_types crt ON crt.id = r.company_resource_type_id
+WHERE r.id = $1`
 
 	var row struct {
-		ID                    uuid.UUID
-		CompanyID             uuid.UUID
-		Name                  string
-		Type                  string
-		Description           string
-		Location              string
-		MaxReservationMinutes *int
-		AvailableFrom         *string
-		AvailableTo           *string
-		Status                string
-		UnavailableFrom       *time.Time
-		UnavailableTo         *time.Time
-		UnavailableReason     *string
-		CreatedAt             time.Time
-		UpdatedAt             time.Time
+		ID                      uuid.UUID
+		CompanyID               uuid.UUID
+		Name                    string
+		Type                    string
+		Description             string
+		Location                string
+		MaxReservationMinutes   *int
+		AvailableFrom           *string
+		AvailableTo             *string
+		Status                  string
+		UnavailableFrom         *time.Time
+		UnavailableTo           *time.Time
+		UnavailableReason       *string
+		CreatedAt               time.Time
+		UpdatedAt               time.Time
+		CompanyResourceTypeIDNu uuid.NullUUID
+		CrtName                 sql.NullString
+		CrtIconKey              sql.NullString
 	}
 
 	err := postgres.ExtractQuerier(ctx, r.db).QueryRow(ctx, q, id).Scan(
@@ -48,9 +56,28 @@ func (r *ResourceRepo) ByID(ctx context.Context, id uuid.UUID) (*resource.Resour
 		&row.UnavailableReason,
 		&row.CreatedAt,
 		&row.UpdatedAt,
+		&row.CompanyResourceTypeIDNu,
+		&row.CrtName,
+		&row.CrtIconKey,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("scan resource: %w", err)
+	}
+
+	var companyCRTID *uuid.UUID
+	if row.CompanyResourceTypeIDNu.Valid {
+		u := row.CompanyResourceTypeIDNu.UUID
+		companyCRTID = &u
+	}
+	var customName *string
+	if row.CrtName.Valid {
+		n := row.CrtName.String
+		customName = &n
+	}
+	var customIcon *string
+	if row.CrtIconKey.Valid {
+		i := row.CrtIconKey.String
+		customIcon = &i
 	}
 
 	return resource.Reconstitute(&resource.Props{
@@ -58,6 +85,9 @@ func (r *ResourceRepo) ByID(ctx context.Context, id uuid.UUID) (*resource.Resour
 		CompanyID:             row.CompanyID,
 		Name:                  row.Name,
 		ResourceType:          row.Type,
+		CompanyResourceTypeID: companyCRTID,
+		CustomTypeName:        customName,
+		CustomTypeIconKey:     customIcon,
 		Description:           row.Description,
 		Location:              row.Location,
 		MaxReservationMinutes: row.MaxReservationMinutes,

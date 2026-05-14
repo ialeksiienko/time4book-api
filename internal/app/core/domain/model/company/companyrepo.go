@@ -11,4 +11,5 @@ type CompanyRepo interface {
 	ByID(ctx context.Context, id uuid.UUID) (*Company, error)
 	List(ctx context.Context, page, limit int) ([]*Company, int64, error)
 	Update(ctx context.Context, c *Company) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }

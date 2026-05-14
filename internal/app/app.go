@@ -1,21 +1,27 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
+
 	httpadapter "time4book/internal/app/adapters/in/http"
 	"time4book/internal/app/adapters/out/jwt"
 	"time4book/internal/app/adapters/out/postgres"
 	authrepo "time4book/internal/app/adapters/out/postgres/repo/auth"
 	companyrepo "time4book/internal/app/adapters/out/postgres/repo/company"
+	companyresourcetyperepo "time4book/internal/app/adapters/out/postgres/repo/companyresourcetype"
 	bookingrepo "time4book/internal/app/adapters/out/postgres/repo/reservation"
 	resourcerepo "time4book/internal/app/adapters/out/postgres/repo/resource"
 	userrepo "time4book/internal/app/adapters/out/postgres/repo/user"
+	"time4book/internal/app/bootstrap"
 	"time4book/internal/app/config"
+	"time4book/internal/app/core/domain/model/company"
+	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/usecases"
 	"time4book/pkg/validator"
 
@@ -31,10 +37,12 @@ const (
 )
 
 type Facade struct {
-	commands   *usecases.Commands
-	logger     *slog.Logger
-	isProd     bool
-	jwtManager *jwt.JWTManager
+	commands    *usecases.Commands
+	userRepo    user.UserRepo
+	companyRepo company.CompanyRepo
+	logger      *slog.Logger
+	isProd      bool
+	jwtManager  *jwt.JWTManager
 }
 
 func New() *Facade {
@@ -52,7 +60,7 @@ func New() *Facade {
 
 	logger := setupLogger(cfg.Env)
 
-	pool, _, err := postgres.NewDBPool(&postgres.Config{
+	dbConfig := &postgres.Config{
 		User: cfg.User,
 		Pass: cfg.Pass,
 		Host: cfg.Host,
@@ -60,7 +68,13 @@ func New() *Facade {
 		Name: cfg.Name,
 
 		Logger: logger,
-	})
+	}
+
+	if err := postgres.RunMigrations(context.Background(), dbConfig); err != nil {
+		panic(fmt.Sprintf("unexpected error while trying to run database migrations: %s", err.Error()))
+	}
+
+	pool, _, err := postgres.NewDBPool(dbConfig)
 	if err != nil {
 		panic(fmt.Sprintf("unexpected error while trying to connect to database: %s", err.Error()))
 	}
@@ -75,14 +89,33 @@ func New() *Facade {
 	companyRepo := companyrepo.New(db)
 	resourceRepo := resourcerepo.New(db)
 	bookingRepo := bookingrepo.New(db)
+	crtRepo := companyresourcetyperepo.New(db)
 
-	commands := usecases.New(userRepo, authRepo, companyRepo, resourceRepo, bookingRepo, txManager, jwtManager, validator, logger)
+	commands := usecases.New(userRepo, authRepo, companyRepo, resourceRepo, crtRepo, bookingRepo, txManager, jwtManager, validator, logger)
+
+	ctx := context.Background()
+	if bootstrapErr := bootstrap.EnsureDeveloperUser(
+		ctx,
+		strings.TrimSpace(strings.ToLower(cfg.Env)),
+		bootstrap.DeveloperBootstrapPassword,
+		txManager,
+		userRepo,
+		authRepo,
+		companyRepo,
+		logger.With(slog.String("bootstrap", "developer")),
+	); bootstrapErr != nil {
+		logger.Warn("developer bootstrap skipped or failed",
+			slog.String("error", bootstrapErr.Error()),
+		)
+	}
 
 	return &Facade{
-		commands:   commands,
-		logger:     logger,
-		isProd:     cfg.Env == envProd,
-		jwtManager: jwtManager,
+		commands:    commands,
+		userRepo:    userRepo,
+		companyRepo: companyRepo,
+		logger:      logger,
+		isProd:      cfg.Env == envProd,
+		jwtManager:  jwtManager,
 	}
 }
 
@@ -94,9 +127,10 @@ func (f *Facade) GetHTTPServer() *httpadapter.Server {
 	handler := httpadapter.NewHandler(f.commands)
 
 	authMw := httpadapter.JWTAuth(f.jwtManager)
-	companyMw := httpadapter.RequireCompany()
+	companyMw := httpadapter.RequireCompanyScope(f.userRepo)
+	activeCompanyMw := httpadapter.RequireActiveCompany(f.userRepo, f.companyRepo)
 
-	router := httpadapter.NewRouter(handler, authMw, companyMw)
+	router := httpadapter.NewRouter(handler, authMw, companyMw, activeCompanyMw)
 
 	srv := httpadapter.New(f.logger, 50052, router)
 

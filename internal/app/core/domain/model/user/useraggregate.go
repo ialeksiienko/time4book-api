@@ -11,6 +11,7 @@ import (
 var (
 	ErrInvalidEmail = errors.New("invalid email address")
 	ErrUnauthorized = errors.New("security violation: unauthorized action")
+	ErrNotFound     = errors.New("user not found")
 )
 
 type User struct {

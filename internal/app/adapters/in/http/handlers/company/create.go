@@ -80,4 +80,3 @@ func (h *Handler) Create(c *gin.Context) {
 		CompanyID: res.CompanyID,
 	})
 }
-

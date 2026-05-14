@@ -53,4 +53,3 @@ func (h *Handler) Deactivate(c *gin.Context) {
 		Message: "user deactivated",
 	})
 }
-

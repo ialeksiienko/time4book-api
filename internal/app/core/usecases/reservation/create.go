@@ -68,8 +68,12 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		return nil, user.ErrUnauthorized
 	}
 
-	if !res.IsBookable() {
-		return nil, fmt.Errorf("resource is not bookable")
+	if req.StartDate.Before(time.Now().UTC().Add(-time.Hour)) {
+		return nil, ErrReservationStartTooFarInPast
+	}
+
+	if !res.IsBookableForInterval(req.StartDate, req.EndDate) {
+		return nil, fmt.Errorf("zasób jest niedostępny w wybranym terminie")
 	}
 
 	if res.MaxReservationMinutes() != nil {
@@ -84,7 +88,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		return nil, fmt.Errorf("check active bookings: %w", err)
 	}
 	if len(activeBookings) > 0 {
-		return nil, fmt.Errorf("time slot is already booked")
+		return nil, ErrSlotAlreadyTaken
 	}
 
 	b, err := booking.NewBooking(

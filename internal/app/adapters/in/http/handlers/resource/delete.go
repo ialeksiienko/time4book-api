@@ -53,4 +53,3 @@ func (h *Handler) Delete(c *gin.Context) {
 		Message: "resource deleted",
 	})
 }
-

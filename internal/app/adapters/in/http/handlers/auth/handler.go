@@ -13,4 +13,3 @@ func NewHandler(commands *authcommands.Facade) *Handler {
 		commands: commands,
 	}
 }
-

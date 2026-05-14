@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/in/http/handlers"
+	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/usecases/resource"
 	"time4book/pkg/validator"
 
@@ -12,14 +13,15 @@ import (
 )
 
 type CreateRequest struct {
-	CompanyID             uuid.UUID `json:"companyId" binding:"required"`
-	Name                  string    `json:"name" binding:"required"`
-	Type                  string    `json:"type" binding:"required"`
-	Description           string    `json:"description"`
-	Location              string    `json:"location"`
-	MaxReservationMinutes *int      `json:"maxReservationMinutes"`
-	AvailableFrom         *string   `json:"availableFrom"`
-	AvailableTo           *string   `json:"availableTo"`
+	CompanyID             uuid.UUID  `json:"companyId" binding:"required"`
+	Name                  string     `json:"name" binding:"required"`
+	Type                  string     `json:"type" binding:"required"`
+	CompanyResourceTypeID *uuid.UUID `json:"companyResourceTypeId"`
+	Description           string     `json:"description"`
+	Location              string     `json:"location"`
+	MaxReservationMinutes *int       `json:"maxReservationMinutes"`
+	AvailableFrom         *string    `json:"availableFrom"`
+	AvailableTo           *string    `json:"availableTo"`
 }
 
 type CreateResponse struct {
@@ -58,6 +60,7 @@ func (h *Handler) Create(c *gin.Context) {
 		CompanyID:             body.CompanyID,
 		Name:                  body.Name,
 		Type:                  body.Type,
+		CompanyResourceTypeID: body.CompanyResourceTypeID,
 		Description:           body.Description,
 		Location:              body.Location,
 		MaxReservationMinutes: body.MaxReservationMinutes,
@@ -67,6 +70,10 @@ func (h *Handler) Create(c *gin.Context) {
 
 	res, err := h.commands.Create.Execute(c.Request.Context(), req)
 	if err != nil {
+		if errors.Is(err, user.ErrUnauthorized) {
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{Status: false, Error: err.Error()})
+			return
+		}
 		var validationErr validator.ValidationErrors
 		if errors.As(err, &validationErr) {
 			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
@@ -88,4 +95,3 @@ func (h *Handler) Create(c *gin.Context) {
 		ResourceID: res.ResourceID,
 	})
 }
-

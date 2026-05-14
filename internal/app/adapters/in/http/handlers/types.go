@@ -9,4 +9,3 @@ type SuccessResponse struct {
 	Status  bool   `json:"status" example:"true"`
 	Message string `json:"message,omitempty" example:"success"`
 }
-
