@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
-	httpadapter "time4book/internal/app/adapters/in/http"
+	httpadapter "time4book/internal/app/adapters/http"
 	"time4book/internal/app/adapters/out/jwt"
 	"time4book/internal/app/adapters/postgres"
 	authrepo "time4book/internal/app/adapters/postgres/repo/auth"
