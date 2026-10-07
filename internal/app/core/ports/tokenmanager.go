@@ -16,7 +16,12 @@ type Token struct {
 	ExpiresAt time.Time
 }
 
+type Tokens struct {
+	AccessToken  *Token
+	RefreshToken *Token
+}
+
 type TokenManager interface {
-	GenerateToken(userID uuid.UUID, role string, tokenType string) (*Token, error)
+	GenerateTokens(userID uuid.UUID, role string) (*Tokens, error)
 	ValidateToken(token string) (uuid.UUID, string, error)
 }

@@ -36,8 +36,8 @@ type Register struct {
 	authRepo    auth.AuthRepo
 	companyRepo company.CompanyRepo
 
-	tx    ports.TxManager
-	token ports.TokenManager
+	tx           ports.TxManager
+	tokenManager ports.TokenManager
 
 	validator *validator.Facade
 	log       *slog.Logger
@@ -48,18 +48,18 @@ func newRegister(
 	arepo auth.AuthRepo,
 	crepo company.CompanyRepo,
 	tx ports.TxManager,
-	token ports.TokenManager,
+	tokenManager ports.TokenManager,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Register {
 	return &Register{
-		userRepo:    urepo,
-		authRepo:    arepo,
-		companyRepo: crepo,
-		tx:          tx,
-		token:       token,
-		validator:   v,
-		log:         l,
+		userRepo:     urepo,
+		authRepo:     arepo,
+		companyRepo:  crepo,
+		tx:           tx,
+		tokenManager: tokenManager,
+		validator:    v,
+		log:          l,
 	}
 }
 
@@ -99,17 +99,12 @@ func (r *Register) Execute(ctx context.Context, req *RegisterRequest) (*Register
 		return nil, fmt.Errorf("new auth creds: %w", cErr)
 	}
 
-	accessToken, genErr0 := r.token.GenerateToken(usr.ID(), usr.Role().String(), ports.AccessToken)
-	if genErr0 != nil {
-		return nil, fmt.Errorf("generate access token: %w", genErr0)
+	tokens, err := r.tokenManager.GenerateTokens(usr.ID(), usr.Role().String())
+	if err != nil {
+		return nil, fmt.Errorf("generate tokens: %w", err)
 	}
 
-	refreshToken, genErr := r.token.GenerateToken(usr.ID(), usr.Role().String(), ports.RefreshToken)
-	if genErr != nil {
-		return nil, fmt.Errorf("generate access token: %w", genErr)
-	}
-
-	session := auth.NewSession(usr.ID(), refreshToken.Value, refreshToken.ExpiresAt)
+	session := auth.NewSession(usr.ID(), tokens.RefreshToken.Value, tokens.RefreshToken.ExpiresAt)
 
 	comp, cErr2 := company.NewCompany(
 		usr.ID(),
@@ -160,7 +155,7 @@ func (r *Register) Execute(ctx context.Context, req *RegisterRequest) (*Register
 	return &RegisterResponse{
 		UserID:       usr.ID(),
 		CompanyID:    comp.ID(),
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	}, nil
 }

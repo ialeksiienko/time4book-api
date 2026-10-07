@@ -28,30 +28,20 @@ func NewManager(
 	}
 }
 
-func (j *JWTManager) GenerateToken(userID uuid.UUID, role string, tokenType string) (*ports.Token, error) {
-	dur := j.accessTokenDuration
-	if tokenType == ports.RefreshToken {
-		dur = j.refreshTokenDuration
-	}
-
-	expiresAt := time.Now().Add(dur)
-	claims := jwt.MapClaims{
-		"sub":  userID.String(),
-		"role": role,
-		"type": string(tokenType),
-		"exp":  expiresAt.Unix(),
-		"iat":  time.Now().Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	val, err := token.SignedString([]byte(j.secretKey))
+func (j *JWTManager) GenerateTokens(userID uuid.UUID, role string) (*ports.Tokens, error) {
+	accessToken, err := j.generateToken(userID, role, ports.AccessToken)
 	if err != nil {
-		return nil, fmt.Errorf("sign token: %w", err)
+		return nil, fmt.Errorf("generate access token: %w", err)
 	}
 
-	return &ports.Token{
-		Value:     val,
-		ExpiresAt: expiresAt,
+	refreshToken, err := j.generateToken(userID, role, ports.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("generate refresh token: %w", err)
+	}
+
+	return &ports.Tokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }
 
@@ -87,4 +77,31 @@ func (j *JWTManager) ValidateToken(tokenStr string) (uuid.UUID, string, error) {
 	}
 
 	return uuid.Nil, "", errors.New("invalid token")
+}
+
+func (j *JWTManager) generateToken(userID uuid.UUID, role string, tokenType string) (*ports.Token, error) {
+	dur := j.accessTokenDuration
+	if tokenType == ports.RefreshToken {
+		dur = j.refreshTokenDuration
+	}
+
+	expiresAt := time.Now().Add(dur)
+	claims := jwt.MapClaims{
+		"sub":  userID.String(),
+		"role": role,
+		"type": string(tokenType),
+		"exp":  expiresAt.Unix(),
+		"iat":  time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	val, err := token.SignedString([]byte(j.secretKey))
+	if err != nil {
+		return nil, fmt.Errorf("sign token: %w", err)
+	}
+
+	return &ports.Token{
+		Value:     val,
+		ExpiresAt: expiresAt,
+	}, nil
 }

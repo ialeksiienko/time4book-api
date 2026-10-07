@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 	httpadapter "time4book/internal/app/adapters/http"
-	"time4book/internal/app/adapters/out/jwt"
 	"time4book/internal/app/adapters/postgres"
 	authrepo "time4book/internal/app/adapters/postgres/repo/auth"
 	companyrepo "time4book/internal/app/adapters/postgres/repo/company"
@@ -16,6 +15,7 @@ import (
 	resourcerepo "time4book/internal/app/adapters/postgres/repo/resource"
 	userrepo "time4book/internal/app/adapters/postgres/repo/user"
 	"time4book/internal/app/config"
+	"time4book/internal/app/core/jwt"
 	"time4book/internal/app/core/usecases"
 	"time4book/pkg/validator"
 

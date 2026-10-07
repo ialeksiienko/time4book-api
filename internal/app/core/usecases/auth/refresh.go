@@ -24,7 +24,7 @@ type Refresh struct {
 	userRepo user.UserRepo
 	authRepo auth.AuthRepo
 
-	token ports.TokenManager
+	tokenManager ports.TokenManager
 
 	validator *validator.Facade
 	log       *slog.Logger
@@ -33,16 +33,16 @@ type Refresh struct {
 func newRefresh(
 	userRepo user.UserRepo,
 	authRepo auth.AuthRepo,
-	token ports.TokenManager,
+	tokenManager ports.TokenManager,
 	validator *validator.Facade,
 	log *slog.Logger,
 ) *Refresh {
 	return &Refresh{
-		userRepo:  userRepo,
-		authRepo:  authRepo,
-		token:     token,
-		validator: validator,
-		log:       log,
+		userRepo:     userRepo,
+		authRepo:     authRepo,
+		tokenManager: tokenManager,
+		validator:    validator,
+		log:          log,
 	}
 }
 
@@ -66,27 +66,22 @@ func (r *Refresh) Execute(ctx context.Context, req *RefreshRequest) (*RefreshRes
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
 
-	accessToken, err := r.token.GenerateToken(user.ID(), user.Role().String(), ports.AccessToken)
+	tokens, err := r.tokenManager.GenerateTokens(user.ID(), user.Role().String())
 	if err != nil {
-		return nil, fmt.Errorf("generate access token: %w", err)
-	}
-
-	refreshToken, err := r.token.GenerateToken(user.ID(), user.Role().String(), ports.RefreshToken)
-	if err != nil {
-		return nil, fmt.Errorf("generate refresh token: %w", err)
+		return nil, fmt.Errorf("generate tokens: %w", err)
 	}
 
 	if err := r.authRepo.DeleteSessionByRefreshToken(ctx, req.RefreshToken); err != nil {
 		return nil, fmt.Errorf("delete old session: %w", err)
 	}
 
-	newSession := auth.NewSession(user.ID(), refreshToken.Value, refreshToken.ExpiresAt)
+	newSession := auth.NewSession(user.ID(), tokens.RefreshToken.Value, tokens.RefreshToken.ExpiresAt)
 	if err := r.authRepo.InsertUserSession(ctx, newSession); err != nil {
 		return nil, fmt.Errorf("insert new session: %w", err)
 	}
 
 	return &RefreshResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	}, nil
 }

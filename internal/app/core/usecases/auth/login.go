@@ -28,7 +28,7 @@ type Login struct {
 	userRepo user.UserRepo
 	authRepo auth.AuthRepo
 
-	token ports.TokenManager
+	tokenManager ports.TokenManager
 
 	validator *validator.Facade
 	log       *slog.Logger
@@ -38,17 +38,17 @@ func newLogin(
 	userRepo user.UserRepo,
 	authRepo auth.AuthRepo,
 
-	token ports.TokenManager,
+	tokenManager ports.TokenManager,
 
 	validator *validator.Facade,
 	log *slog.Logger,
 ) *Login {
 	return &Login{
-		userRepo:  userRepo,
-		authRepo:  authRepo,
-		token:     token,
-		validator: validator,
-		log:       log,
+		userRepo:     userRepo,
+		authRepo:     authRepo,
+		tokenManager: tokenManager,
+		validator:    validator,
+		log:          log,
 	}
 }
 
@@ -74,21 +74,16 @@ func (l *Login) Execute(ctx context.Context, req *LoginRequest) (*LoginResponse,
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
 
-	accessToken, genErr0 := l.token.GenerateToken(user.ID(), user.Role().String(), ports.AccessToken)
-	if genErr0 != nil {
-		return nil, fmt.Errorf("generate access token: %w", genErr0)
-	}
-
-	refreshToken, genErr := l.token.GenerateToken(user.ID(), user.Role().String(), ports.RefreshToken)
-	if genErr != nil {
-		return nil, fmt.Errorf("generate access token: %w", genErr)
+	tokens, err := l.tokenManager.GenerateTokens(user.ID(), user.Role().String())
+	if err != nil {
+		return nil, fmt.Errorf("generate tokens: %w", err)
 	}
 
 	if err := l.authRepo.DeleteSessionsByUserID(ctx, user.ID()); err != nil {
 		return nil, fmt.Errorf("delete session by user id %s: %w", user.ID(), err)
 	}
 
-	session := auth.NewSession(user.ID(), refreshToken.Value, refreshToken.ExpiresAt)
+	session := auth.NewSession(user.ID(), tokens.RefreshToken.Value, tokens.RefreshToken.ExpiresAt)
 
 	if err := l.authRepo.InsertUserSession(ctx, session); err != nil {
 		return nil, fmt.Errorf("insert user session: %w", err)
@@ -96,7 +91,7 @@ func (l *Login) Execute(ctx context.Context, req *LoginRequest) (*LoginResponse,
 
 	return &LoginResponse{
 		UserID:       user.ID(),
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
