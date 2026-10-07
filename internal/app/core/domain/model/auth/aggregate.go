@@ -30,14 +30,6 @@ func (c *Credentials) UserID() uuid.UUID    { return c.userID }
 func (c *Credentials) Email() string        { return c.email }
 func (c *Credentials) PasswordHash() string { return c.passwordHash }
 
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	if err != nil {
-		return "", fmt.Errorf("generate hash from password: %w", err)
-	}
-	return string(bytes), nil
-}
-
 func (c *Credentials) VerifyPassword(plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(c.passwordHash), []byte(plainPassword))
 	return err == nil
@@ -55,4 +47,12 @@ func ReconstituteCredentials(props *CredentialsProps) *Credentials {
 		email:        props.Email,
 		passwordHash: props.PasswordHash,
 	}
+}
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		return "", fmt.Errorf("generate hash from password: %w", err)
+	}
+	return string(bytes), nil
 }
