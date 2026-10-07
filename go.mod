@@ -1,6 +1,6 @@
 module time4book
 
-go 1.26.1
+go 1.27.1
 
 require (
 	github.com/badoux/checkmail v1.2.4
