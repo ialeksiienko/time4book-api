@@ -53,8 +53,7 @@ func (h *Handler) Login(c *gin.Context) {
 
 	res, err := h.commands.Login.Execute(c.Request.Context(), req)
 	if err != nil {
-		var validationErr validator.ValidationErrors
-		if errors.As(err, &validationErr) {
+		if validationErr, ok := errors.AsType[validator.ValidationErrors](err); ok {
 			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 				Status: false,
 				Error:  validationErr.Error(),

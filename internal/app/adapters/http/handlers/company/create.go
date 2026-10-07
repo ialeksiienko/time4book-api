@@ -37,7 +37,6 @@ type CreateResponse struct {
 // @Router       /companies [post]
 func (h *Handler) Create(c *gin.Context) {
 	var body CreateRequest
-
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 			Status: false,
@@ -80,4 +79,3 @@ func (h *Handler) Create(c *gin.Context) {
 		CompanyID: res.CompanyID,
 	})
 }
-

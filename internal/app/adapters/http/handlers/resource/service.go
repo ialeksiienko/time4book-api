@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/resource"
+	resourcecommands "time4book/internal/app/core/usecases/resource"
 	"time4book/pkg/validator"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +33,6 @@ type ServiceRequest struct {
 // @Router       /resources/{id}/service [post]
 func (h *Handler) Service(c *gin.Context) {
 	var body ServiceRequest
-
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 			Status: false,
@@ -90,4 +89,3 @@ func (h *Handler) Service(c *gin.Context) {
 		Message: "resource marked in service",
 	})
 }
-

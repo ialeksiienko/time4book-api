@@ -3,7 +3,7 @@ package reservation
 import (
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/reservation"
+	reservationcommands "time4book/internal/app/core/usecases/reservation"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -57,4 +57,3 @@ func (h *Handler) Cancel(c *gin.Context) {
 		Message: "reservation cancelled",
 	})
 }
-

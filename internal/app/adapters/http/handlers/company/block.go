@@ -3,7 +3,7 @@ package company
 import (
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/company"
+	companycommands "time4book/internal/app/core/usecases/company"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -53,4 +53,3 @@ func (h *Handler) Block(c *gin.Context) {
 		Message: "company blocked",
 	})
 }
-

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/resource"
+	resourcecommands "time4book/internal/app/core/usecases/resource"
 	"time4book/pkg/validator"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +36,6 @@ type UpdateRequest struct {
 // @Router       /resources/{id} [put]
 func (h *Handler) Update(c *gin.Context) {
 	var body UpdateRequest
-
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 			Status: false,
@@ -97,4 +96,3 @@ func (h *Handler) Update(c *gin.Context) {
 		Message: "resource updated",
 	})
 }
-

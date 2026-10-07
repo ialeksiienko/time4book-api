@@ -28,4 +28,3 @@ func NewHandler(
 		ReservationHandler: reservationhandler.NewHandler(c.Reservation),
 	}
 }
-

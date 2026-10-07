@@ -3,7 +3,7 @@ package user
 import (
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/user"
+	usercommands "time4book/internal/app/core/usecases/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -57,4 +57,3 @@ func (h *Handler) Deactivate(c *gin.Context) {
 		Message: "user deactivated",
 	})
 }
-

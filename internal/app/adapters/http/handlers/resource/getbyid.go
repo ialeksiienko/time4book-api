@@ -3,7 +3,7 @@ package resource
 import (
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/resource"
+	resourcecommands "time4book/internal/app/core/usecases/resource"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -79,4 +79,3 @@ func (h *Handler) GetByID(c *gin.Context) {
 		ResourceStatus:        r.Status().String(),
 	})
 }
-

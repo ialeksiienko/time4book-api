@@ -9,23 +9,27 @@ import (
 	"github.com/google/uuid"
 )
 
+type User struct {
+	ID        uuid.UUID `json:"id"`
+	Firstname string    `json:"firstName"`
+	Lastname  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	Role      string    `json:"role"`
+	CompanyID uuid.UUID `json:"companyId,omitempty"`
+}
+
+type Company struct {
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	NIP      *string   `json:"nip,omitempty"`
+	Address  *string   `json:"address,omitempty"`
+	Industry *string   `json:"industry,omitempty"`
+}
+
 type MeResponse struct {
-	Status bool `json:"status"`
-	User   struct {
-		ID        uuid.UUID `json:"id"`
-		Firstname string    `json:"firstName"`
-		Lastname  string    `json:"lastName"`
-		Email     string    `json:"email"`
-		Role      string    `json:"role"`
-		CompanyID uuid.UUID `json:"companyId,omitempty"`
-	} `json:"user"`
-	Company *struct {
-		ID       uuid.UUID `json:"id"`
-		Name     string    `json:"name"`
-		NIP      *string   `json:"nip,omitempty"`
-		Address  *string   `json:"address,omitempty"`
-		Industry *string   `json:"industry,omitempty"`
-	} `json:"company,omitempty"`
+	Status  bool     `json:"status"`
+	User    User     `json:"user"`
+	Company *Company `json:"company,omitempty"`
 }
 
 // Me godoc
@@ -72,13 +76,7 @@ func (h *Handler) Me(c *gin.Context) {
 	respData.User.CompanyID = res.User.CompanyID()
 
 	if res.Company != nil {
-		respData.Company = &struct {
-			ID       uuid.UUID `json:"id"`
-			Name     string    `json:"name"`
-			NIP      *string   `json:"nip,omitempty"`
-			Address  *string   `json:"address,omitempty"`
-			Industry *string   `json:"industry,omitempty"`
-		}{
+		respData.Company = &Company{
 			ID:       res.Company.ID(),
 			Name:     res.Company.Name(),
 			NIP:      res.Company.NIP(),

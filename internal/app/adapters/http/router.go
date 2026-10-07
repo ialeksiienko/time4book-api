@@ -81,7 +81,7 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 		})
 	})
 
-	r.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
+	r.Use(gin.CustomRecovery(func(c *gin.Context, recovered any) {
 		if err, ok := recovered.(string); ok {
 			c.JSON(http.StatusInternalServerError, handlers.ErrorResponse{
 				Status: false,

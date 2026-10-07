@@ -3,7 +3,7 @@ package company
 import (
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
-	"time4book/internal/app/core/usecases/company"
+	companycommands "time4book/internal/app/core/usecases/company"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -31,7 +31,6 @@ type UpdateRequest struct {
 // @Router       /companies/{id} [put]
 func (h *Handler) Update(c *gin.Context) {
 	var body UpdateRequest
-
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 			Status: false,
@@ -76,4 +75,3 @@ func (h *Handler) Update(c *gin.Context) {
 		Message: "company updated",
 	})
 }
-

@@ -43,7 +43,6 @@ type RegisterResponse struct {
 // @Router       /auth/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	var body RegisterRequest
-
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 			Status: false,

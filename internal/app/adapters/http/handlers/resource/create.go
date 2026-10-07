@@ -40,7 +40,6 @@ type CreateResponse struct {
 // @Router       /resources [post]
 func (h *Handler) Create(c *gin.Context) {
 	var body CreateRequest
-
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{
 			Status: false,
