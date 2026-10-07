@@ -14,6 +14,11 @@ tasks:
     cmds:
       - go run -v ./cmd/api
 
+  live:
+    desc: Run the application with live reload
+    cmds:
+      - air --build.cmd "go build -o ./tmp/main ./cmd/api" --build.bin ./tmp/main
+
   swag:
     desc: Swag docs init
     cmds:
