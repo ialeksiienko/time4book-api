@@ -1373,6 +1373,284 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/company-resource-types": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List company resource types",
+                "tags": [
+                    "company-resource-types"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "companyId",
+                        "type": "string",
+                        "description": "Company scope for developer requests"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/companyresourcetype.ListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create a company resource type",
+                "tags": [
+                    "company-resource-types"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "request",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/companyresourcetype.CreateRequest"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "companyId",
+                        "type": "string",
+                        "description": "Company scope for developer requests"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/companyresourcetype.CreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                },
+                "consumes": [
+                    "application/json"
+                ]
+            }
+        },
+        "/company-resource-types/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update a company resource type",
+                "tags": [
+                    "company-resource-types"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "request",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/companyresourcetype.UpdateRequest"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "companyId",
+                        "type": "string",
+                        "description": "Company scope for developer requests"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                },
+                "consumes": [
+                    "application/json"
+                ]
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete a company resource type",
+                "tags": [
+                    "company-resource-types"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "companyId",
+                        "type": "string",
+                        "description": "Company scope for developer requests"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1852,6 +2130,9 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                },
+                "companyResourceTypeId": {
+                    "type": "string"
                 }
             }
         },
@@ -1901,6 +2182,20 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                },
+                "companyResourceType": {
+                    "$ref": "#/definitions/resource.CompanyResourceTypeRef"
+                },
+                "unavailableFrom": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "unavailableTo": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "unavailableReason": {
+                    "type": "string"
                 }
             }
         },
@@ -1935,6 +2230,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "companyResourceType": {
+                    "$ref": "#/definitions/resource.CompanyResourceTypeRef"
+                },
+                "unavailableFrom": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "unavailableTo": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "unavailableReason": {
                     "type": "string"
                 }
             }
@@ -2006,6 +2315,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "companyResourceTypeId": {
                     "type": "string"
                 }
             }
@@ -2109,6 +2421,93 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "resource.CompanyResourceTypeRef": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "iconKey": {
+                    "type": "string"
+                }
+            }
+        },
+        "companyresourcetype.CreateRequest": {
+            "type": "object",
+            "required": [
+                "companyId",
+                "name",
+                "iconKey"
+            ],
+            "properties": {
+                "companyId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "iconKey": {
+                    "type": "string"
+                }
+            }
+        },
+        "companyresourcetype.CreateResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "companyresourcetype.UpdateRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "iconKey"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "iconKey": {
+                    "type": "string"
+                }
+            }
+        },
+        "companyresourcetype.ListItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "iconKey": {
+                    "type": "string"
+                }
+            }
+        },
+        "companyresourcetype.ListResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "boolean"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/companyresourcetype.ListItem"
+                    }
                 }
             }
         }
