@@ -10,17 +10,8 @@ import (
 )
 
 type GetByIDResponse struct {
-	Status                bool      `json:"status"`
-	ID                    uuid.UUID `json:"id"`
-	CompanyID             uuid.UUID `json:"companyId"`
-	Name                  string    `json:"name"`
-	Type                  string    `json:"type"`
-	Description           string    `json:"description"`
-	Location              string    `json:"location"`
-	MaxReservationMinutes *int      `json:"maxReservationMinutes,omitempty"`
-	AvailableFrom         *string   `json:"availableFrom,omitempty"`
-	AvailableTo           *string   `json:"availableTo,omitempty"`
-	ResourceStatus        string    `json:"resourceStatus"`
+	Status bool `json:"status"`
+	ResourceBody
 }
 
 // GetByID godoc
@@ -65,17 +56,5 @@ func (h *Handler) GetByID(c *gin.Context) {
 	}
 
 	r := res.Resource
-	c.JSON(http.StatusOK, GetByIDResponse{
-		Status:                true,
-		ID:                    r.ID(),
-		CompanyID:             r.CompanyID(),
-		Name:                  r.Name(),
-		Type:                  r.Type().String(),
-		Description:           r.Description(),
-		Location:              r.Location(),
-		MaxReservationMinutes: r.MaxReservationMinutes(),
-		AvailableFrom:         r.AvailableFrom(),
-		AvailableTo:           r.AvailableTo(),
-		ResourceStatus:        r.Status().String(),
-	})
+	c.JSON(http.StatusOK, GetByIDResponse{Status: true, ResourceBody: toResourceBody(r)})
 }

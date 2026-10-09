@@ -8,14 +8,15 @@ import (
 )
 
 func (r *ResourceRepo) Create(ctx context.Context, res *resource.Resource) error {
-	q := `INSERT INTO resources (id, company_id, name, type, description, location, max_reservation_minutes, available_from, available_to, status, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+	q := `INSERT INTO resources (id, company_id, name, type, company_resource_type_id, description, location, max_reservation_minutes, available_from, available_to, status, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
 
 	_, err := postgres.ExtractQuerier(ctx, r.db).Exec(ctx, q,
 		res.ID(),
 		res.CompanyID(),
 		res.Name(),
 		res.Type().String(),
+		res.CompanyResourceTypeID(),
 		res.Description(),
 		res.Location(),
 		res.MaxReservationMinutes(),

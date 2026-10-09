@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"time4book/internal/app/adapters/http/handlers"
+	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/ports"
 
 	"github.com/gin-gonic/gin"
@@ -73,6 +74,46 @@ func RequireCompany() gin.HandlerFunc {
 			}
 
 			c.Set("companyID", parsedCompanyID.String())
+		}
+		c.Next()
+	}
+}
+
+func ResolveCompany(userRepo user.UserRepo) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, err := uuid.Parse(c.GetString("userID"))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, handlers.ErrorResponse{Status: false, Error: "invalid user"})
+			return
+		}
+
+		usr, err := userRepo.ByID(c.Request.Context(), userID)
+		if err != nil || !usr.IsActive() {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, handlers.ErrorResponse{Status: false, Error: "user not found or inactive"})
+			return
+		}
+
+		selected := c.GetHeader("X-Company-ID")
+		if selected == "" {
+			selected = c.Query("companyId")
+		}
+		if selected != "" {
+			companyID, err := uuid.Parse(selected)
+			if err != nil || companyID == uuid.Nil {
+				c.AbortWithStatusJSON(http.StatusBadRequest, handlers.ErrorResponse{Status: false, Error: "invalid company id"})
+				return
+			}
+			if !usr.Role().IsDeveloper() && companyID != usr.CompanyID() {
+				c.AbortWithStatusJSON(http.StatusForbidden, handlers.ErrorResponse{Status: false, Error: "company mismatch"})
+				return
+			}
+			c.Set("companyID", companyID.String())
+		} else if !usr.Role().IsDeveloper() {
+			if usr.CompanyID() == uuid.Nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, handlers.ErrorResponse{Status: false, Error: "company scope required"})
+				return
+			}
+			c.Set("companyID", usr.CompanyID().String())
 		}
 		c.Next()
 	}

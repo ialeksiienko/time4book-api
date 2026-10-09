@@ -11,10 +11,12 @@ import (
 	"time4book/internal/app/adapters/postgres"
 	authrepo "time4book/internal/app/adapters/postgres/repo/auth"
 	companyrepo "time4book/internal/app/adapters/postgres/repo/company"
+	companyresourcetyperepo "time4book/internal/app/adapters/postgres/repo/companyresourcetype"
 	reservationrepo "time4book/internal/app/adapters/postgres/repo/reservation"
 	resourcerepo "time4book/internal/app/adapters/postgres/repo/resource"
 	userrepo "time4book/internal/app/adapters/postgres/repo/user"
 	"time4book/internal/app/config"
+	"time4book/internal/app/core/domain/model/user"
 	"time4book/internal/app/core/jwt"
 	"time4book/internal/app/core/usecases"
 	"time4book/pkg/validator"
@@ -32,6 +34,7 @@ const (
 
 type Facade struct {
 	commands   *usecases.Commands
+	userRepo   user.UserRepo
 	logger     *slog.Logger
 	isProd     bool
 	jwtManager *jwt.JWTManager
@@ -73,13 +76,15 @@ func New() *Facade {
 	userRepo := userrepo.New(db)
 	authRepo := authrepo.New(db)
 	companyRepo := companyrepo.New(db)
+	companyTypeRepo := companyresourcetyperepo.New(db)
 	resourceRepo := resourcerepo.New(db)
 	reservationRepo := reservationrepo.New(db)
 
-	commands := usecases.New(userRepo, authRepo, companyRepo, resourceRepo, reservationRepo, txManager, jwtManager, validator, logger)
+	commands := usecases.New(userRepo, authRepo, companyRepo, companyTypeRepo, resourceRepo, reservationRepo, txManager, jwtManager, validator, logger)
 
 	return &Facade{
 		commands:   commands,
+		userRepo:   userRepo,
 		logger:     logger,
 		isProd:     cfg.Env == envProd,
 		jwtManager: jwtManager,
@@ -95,8 +100,9 @@ func (f *Facade) GetHTTPServer() *httpadapter.Server {
 
 	authMw := httpadapter.JWTAuth(f.jwtManager)
 	companyMw := httpadapter.RequireCompany()
+	resourceMw := httpadapter.ResolveCompany(f.userRepo)
 
-	router := httpadapter.NewRouter(handler, authMw, companyMw)
+	router := httpadapter.NewRouter(handler, authMw, companyMw, resourceMw)
 
 	srv := httpadapter.New(f.logger, 50052, router)
 

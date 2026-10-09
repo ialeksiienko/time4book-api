@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
 	"time4book/pkg/validator"
@@ -17,6 +18,7 @@ type UpdateRequest struct {
 	CompanyID             uuid.UUID
 	Name                  string `validate:"required"`
 	Type                  string `validate:"required"`
+	CompanyResourceTypeID *uuid.UUID
 	Description           string
 	Location              string
 	MaxReservationMinutes *int
@@ -27,23 +29,26 @@ type UpdateRequest struct {
 type UpdateResponse struct{}
 
 type Update struct {
-	userRepo     user.UserRepo
-	resourceRepo resource.ResourceRepo
-	validator    *validator.Facade
-	log          *slog.Logger
+	userRepo        user.UserRepo
+	resourceRepo    resource.ResourceRepo
+	companyTypeRepo companyresourcetype.Repo
+	validator       *validator.Facade
+	log             *slog.Logger
 }
 
 func newUpdate(
 	urepo user.UserRepo,
 	resrepo resource.ResourceRepo,
+	companyTypeRepo companyresourcetype.Repo,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Update {
 	return &Update{
-		userRepo:     urepo,
-		resourceRepo: resrepo,
-		validator:    v,
-		log:          l,
+		userRepo:        urepo,
+		resourceRepo:    resrepo,
+		companyTypeRepo: companyTypeRepo,
+		validator:       v,
+		log:             l,
 	}
 }
 
@@ -73,12 +78,28 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 			return nil, user.ErrUnauthorized
 		}
 	}
+	if req.CompanyID != uuid.Nil && req.CompanyID != res.CompanyID() {
+		return nil, user.ErrUnauthorized
+	}
+	if err := resource.ValidateType(resource.ResourceType(req.Type), req.CompanyResourceTypeID); err != nil {
+		return nil, err
+	}
+	if req.Type == resource.TypeCustom.String() {
+		typ, err := c.companyTypeRepo.Retrieve(ctx, *req.CompanyResourceTypeID)
+		if err != nil {
+			return nil, fmt.Errorf("retrieve company resource type: %w", err)
+		}
+		if typ.CompanyID() != res.CompanyID() {
+			return nil, user.ErrUnauthorized
+		}
+	}
 
 	props := &resource.Props{
 		ID:                    res.ID(),
 		CompanyID:             res.CompanyID(),
 		Name:                  req.Name,
 		ResourceType:          req.Type,
+		CompanyResourceTypeID: req.CompanyResourceTypeID,
 		Description:           req.Description,
 		Location:              req.Location,
 		MaxReservationMinutes: req.MaxReservationMinutes,

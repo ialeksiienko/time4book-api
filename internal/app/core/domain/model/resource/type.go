@@ -7,6 +7,7 @@ const (
 	TypeCar        ResourceType = "car"
 	TypeMultimedia ResourceType = "multimedia"
 	TypeEquipment  ResourceType = "equipment"
+	TypeCustom     ResourceType = "custom"
 )
 
 func (t ResourceType) String() string {

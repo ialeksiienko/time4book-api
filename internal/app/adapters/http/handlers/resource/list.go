@@ -10,21 +10,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type ListResponse struct {
-	ID                    uuid.UUID `json:"id"`
-	Name                  string    `json:"name"`
-	Type                  string    `json:"type"`
-	Description           string    `json:"description"`
-	Location              string    `json:"location"`
-	MaxReservationMinutes *int      `json:"maxReservationMinutes,omitempty"`
-	AvailableFrom         *string   `json:"availableFrom,omitempty"`
-	AvailableTo           *string   `json:"availableTo,omitempty"`
-	ResourceStatus        string    `json:"resourceStatus"`
-}
-
 type PaginatedResourceResponse struct {
 	Status bool           `json:"status"`
-	Data   []ListResponse `json:"data"`
+	Data   []ResourceBody `json:"data"`
 	Total  int64          `json:"total"`
 	Page   int            `json:"page"`
 	Limit  int            `json:"limit"`
@@ -62,14 +50,12 @@ func (h *Handler) List(c *gin.Context) {
 		}
 	}
 
-	if compID := c.Query("companyId"); compID != "" {
-		if id, err := uuid.Parse(compID); err == nil {
-			req.CompanyID = id
-		}
-	} else if compContext := c.GetString("companyID"); compContext != "" {
-		if cid, err := uuid.Parse(compContext); err == nil {
-			req.CompanyID = cid
-		}
+	if compContext := c.GetString("companyID"); compContext != "" {
+		req.CompanyID, _ = uuid.Parse(compContext)
+	}
+	if req.CompanyID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, handlers.ErrorResponse{Status: false, Error: "company scope required"})
+		return
 	}
 
 	if search := c.Query("search"); search != "" {
@@ -91,19 +77,9 @@ func (h *Handler) List(c *gin.Context) {
 		return
 	}
 
-	items := make([]ListResponse, len(res.Resources))
-	for i, r := range res.Resources {
-		items[i] = ListResponse{
-			ID:                    r.ID(),
-			Name:                  r.Name(),
-			Type:                  r.Type().String(),
-			Description:           r.Description(),
-			Location:              r.Location(),
-			MaxReservationMinutes: r.MaxReservationMinutes(),
-			AvailableFrom:         r.AvailableFrom(),
-			AvailableTo:           r.AvailableTo(),
-			ResourceStatus:        r.Status().String(),
-		}
+	items := make([]ResourceBody, len(res.Resources))
+	for i := range res.Resources {
+		items[i] = toResourceBody(&res.Resources[i])
 	}
 
 	c.JSON(http.StatusOK, PaginatedResourceResponse{

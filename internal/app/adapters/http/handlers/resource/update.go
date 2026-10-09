@@ -4,6 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"time4book/internal/app/adapters/http/handlers"
+	"time4book/internal/app/core/domain/model/companyresourcetype"
+	"time4book/internal/app/core/domain/model/resource"
+	"time4book/internal/app/core/domain/model/user"
 	resourcecommands "time4book/internal/app/core/usecases/resource"
 	"time4book/pkg/validator"
 
@@ -12,13 +15,14 @@ import (
 )
 
 type UpdateRequest struct {
-	Name                  string  `json:"name" binding:"required"`
-	Type                  string  `json:"type" binding:"required"`
-	Description           string  `json:"description"`
-	Location              string  `json:"location"`
-	MaxReservationMinutes *int    `json:"maxReservationMinutes"`
-	AvailableFrom         *string `json:"availableFrom"`
-	AvailableTo           *string `json:"availableTo"`
+	Name                  string     `json:"name" binding:"required"`
+	Type                  string     `json:"type" binding:"required"`
+	CompanyResourceTypeID *uuid.UUID `json:"companyResourceTypeId"`
+	Description           string     `json:"description"`
+	Location              string     `json:"location"`
+	MaxReservationMinutes *int       `json:"maxReservationMinutes"`
+	AvailableFrom         *string    `json:"availableFrom"`
+	AvailableTo           *string    `json:"availableTo"`
 }
 
 // Update godoc
@@ -66,6 +70,7 @@ func (h *Handler) Update(c *gin.Context) {
 		ResourceID:            id,
 		Name:                  body.Name,
 		Type:                  body.Type,
+		CompanyResourceTypeID: body.CompanyResourceTypeID,
 		Description:           body.Description,
 		Location:              body.Location,
 		MaxReservationMinutes: body.MaxReservationMinutes,
@@ -75,6 +80,18 @@ func (h *Handler) Update(c *gin.Context) {
 
 	_, err = h.commands.Update.Execute(c.Request.Context(), req)
 	if err != nil {
+		if errors.Is(err, resource.ErrInvalidType) {
+			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{Status: false, Error: err.Error()})
+			return
+		}
+		if errors.Is(err, user.ErrUnauthorized) {
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{Status: false, Error: err.Error()})
+			return
+		}
+		if errors.Is(err, companyresourcetype.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlers.ErrorResponse{Status: false, Error: err.Error()})
+			return
+		}
 		var validationErr validator.ValidationErrors
 		if errors.As(err, &validationErr) {
 			c.JSON(http.StatusBadRequest, handlers.ErrorResponse{

@@ -8,11 +8,12 @@ import (
 )
 
 func (r *ResourceRepo) Update(ctx context.Context, res *resource.Resource) error {
-	q := `UPDATE resources SET name = $1, type = $2, description = $3, location = $4, max_reservation_minutes = $5, available_from = $6, available_to = $7, status = $8, unavailable_from = $9, unavailable_to = $10, unavailable_reason = $11, updated_at = $12 WHERE id = $13 AND company_id = $14`
+	q := `UPDATE resources SET name = $1, type = $2, company_resource_type_id = $3, description = $4, location = $5, max_reservation_minutes = $6, available_from = $7, available_to = $8, status = $9, unavailable_from = $10, unavailable_to = $11, unavailable_reason = $12, updated_at = $13 WHERE id = $14 AND company_id = $15`
 
 	_, err := postgres.ExtractQuerier(ctx, r.db).Exec(ctx, q,
 		res.Name(),
 		res.Type().String(),
+		res.CompanyResourceTypeID(),
 		res.Description(),
 		res.Location(),
 		res.MaxReservationMinutes(),

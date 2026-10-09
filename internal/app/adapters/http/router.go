@@ -11,7 +11,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *gin.Engine {
+func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc, resourceMw gin.HandlerFunc) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -53,7 +53,7 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 			companyGroup.POST("/:id/block", h.CompanyHandler.Block)
 		}
 
-		resourceGroup := api.Group("/resources", authMw, companyMw)
+		resourceGroup := api.Group("/resources", authMw, resourceMw)
 		{
 			resourceGroup.GET("", h.ResourceHandler.List)
 			resourceGroup.POST("", h.ResourceHandler.Create)
@@ -62,6 +62,14 @@ func NewRouter(h *Handler, authMw gin.HandlerFunc, companyMw gin.HandlerFunc) *g
 			resourceGroup.DELETE("/:id", h.ResourceHandler.Delete)
 			resourceGroup.POST("/:id/service", h.ResourceHandler.Service)
 			resourceGroup.POST("/:id/restore", h.ResourceHandler.Restore)
+		}
+
+		companyTypeGroup := api.Group("/company-resource-types", authMw, resourceMw)
+		{
+			companyTypeGroup.GET("", h.CompanyResourceTypeHandler.List)
+			companyTypeGroup.POST("", h.CompanyResourceTypeHandler.Create)
+			companyTypeGroup.PUT("/:id", h.CompanyResourceTypeHandler.Update)
+			companyTypeGroup.DELETE("/:id", h.CompanyResourceTypeHandler.Delete)
 		}
 
 		reservationGroup := api.Group("/reservations", authMw, companyMw)
