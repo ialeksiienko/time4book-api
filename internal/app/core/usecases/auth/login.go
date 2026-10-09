@@ -6,39 +6,28 @@ import (
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/auth"
-	"time4book/internal/app/core/domain/model/user"
-	"time4book/internal/app/core/ports"
+	port "time4book/internal/app/core/ports/in/auth"
+	outports "time4book/internal/app/core/ports/out"
+	authout "time4book/internal/app/core/ports/out/auth"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
-
-	"github.com/google/uuid"
 )
 
-type LoginRequest struct {
-	Email    string `validate:"required,email"`
-	Password string `validate:"required"`
-}
-
-type LoginResponse struct {
-	UserID       uuid.UUID
-	AccessToken  *ports.Token
-	RefreshToken *ports.Token
-}
-
 type Login struct {
-	userRepo user.UserRepo
-	authRepo auth.AuthRepo
+	userRepo userout.Repository
+	authRepo authout.Repository
 
-	tokenManager ports.TokenManager
+	tokenManager outports.TokenManager
 
 	validator *validator.Facade
 	log       *slog.Logger
 }
 
 func newLogin(
-	userRepo user.UserRepo,
-	authRepo auth.AuthRepo,
+	userRepo userout.Repository,
+	authRepo authout.Repository,
 
-	tokenManager ports.TokenManager,
+	tokenManager outports.TokenManager,
 
 	validator *validator.Facade,
 	log *slog.Logger,
@@ -52,13 +41,13 @@ func newLogin(
 	}
 }
 
-func (l *Login) Execute(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
+func (l *Login) Execute(ctx context.Context, req *port.LoginRequest) (*port.LoginResponse, error) {
 	err := l.validator.Struct(req)
 	if err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	creds, err := l.authRepo.GetCredentialsByEmail(ctx, req.Email)
+	creds, err := l.authRepo.RetrieveCredentialsByEmail(ctx, req.Email)
 	if err != nil {
 		l.log.Error("get user credentials by email", slog.String("error", err.Error()))
 		return nil, errors.New("invalid email or password")
@@ -69,7 +58,7 @@ func (l *Login) Execute(ctx context.Context, req *LoginRequest) (*LoginResponse,
 		return nil, errors.New("invalid email or password")
 	}
 
-	user, err := l.userRepo.ByID(ctx, creds.UserID())
+	user, err := l.userRepo.Retrieve(ctx, creds.UserID())
 	if err != nil {
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
@@ -89,7 +78,7 @@ func (l *Login) Execute(ctx context.Context, req *LoginRequest) (*LoginResponse,
 		return nil, fmt.Errorf("insert user session: %w", err)
 	}
 
-	return &LoginResponse{
+	return &port.LoginResponse{
 		UserID:       user.ID(),
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,

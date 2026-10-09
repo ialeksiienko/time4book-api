@@ -7,18 +7,19 @@ import (
 	"os"
 	"strings"
 	"time"
-	httpadapter "time4book/internal/app/adapters/http"
-	"time4book/internal/app/adapters/postgres"
-	authrepo "time4book/internal/app/adapters/postgres/repo/auth"
-	companyrepo "time4book/internal/app/adapters/postgres/repo/company"
-	companyresourcetyperepo "time4book/internal/app/adapters/postgres/repo/companyresourcetype"
-	reservationrepo "time4book/internal/app/adapters/postgres/repo/reservation"
-	resourcerepo "time4book/internal/app/adapters/postgres/repo/resource"
-	userrepo "time4book/internal/app/adapters/postgres/repo/user"
+	httpadapter "time4book/internal/app/adapters/in/http"
+	"time4book/internal/app/adapters/out/jwt"
+	"time4book/internal/app/adapters/out/postgres"
+	authrepo "time4book/internal/app/adapters/out/postgres/repo/auth"
+	companyrepo "time4book/internal/app/adapters/out/postgres/repo/company"
+	companyresourcetyperepo "time4book/internal/app/adapters/out/postgres/repo/companyresourcetype"
+	reservationrepo "time4book/internal/app/adapters/out/postgres/repo/reservation"
+	resourcerepo "time4book/internal/app/adapters/out/postgres/repo/resource"
+	userrepo "time4book/internal/app/adapters/out/postgres/repo/user"
 	"time4book/internal/app/config"
-	"time4book/internal/app/core/domain/model/user"
-	"time4book/internal/app/core/jwt"
-	"time4book/internal/app/core/usecases"
+	"time4book/internal/app/core"
+	inports "time4book/internal/app/core/ports/in"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/gin-gonic/gin"
@@ -33,8 +34,8 @@ const (
 )
 
 type Facade struct {
-	commands   *usecases.Commands
-	userRepo   user.UserRepo
+	ports      inports.Ports
+	userRepo   userout.Repository
 	logger     *slog.Logger
 	isProd     bool
 	jwtManager *jwt.JWTManager
@@ -80,10 +81,10 @@ func New() *Facade {
 	resourceRepo := resourcerepo.New(db)
 	reservationRepo := reservationrepo.New(db)
 
-	commands := usecases.New(userRepo, authRepo, companyRepo, companyTypeRepo, resourceRepo, reservationRepo, txManager, jwtManager, validator, logger)
+	ports := core.New(userRepo, authRepo, companyRepo, companyTypeRepo, resourceRepo, resourcerepo.NewReader(db), reservationRepo, txManager, jwtManager, validator, logger)
 
 	return &Facade{
-		commands:   commands,
+		ports:      ports,
 		userRepo:   userRepo,
 		logger:     logger,
 		isProd:     cfg.Env == envProd,
@@ -96,7 +97,7 @@ func (f *Facade) GetHTTPServer() *httpadapter.Server {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	handler := httpadapter.NewHandler(f.commands)
+	handler := httpadapter.NewHandler(f.ports)
 
 	authMw := httpadapter.JWTAuth(f.jwtManager)
 	companyMw := httpadapter.RequireCompany()

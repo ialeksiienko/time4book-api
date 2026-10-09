@@ -43,14 +43,13 @@ func RestoreSession(
 	}
 }
 
-func (s *Session) ID() uuid.UUID        { return s.id }
-func (s *Session) UserID() uuid.UUID    { return s.userID }
-func (s *Session) RefreshToken() string { return s.refreshToken }
-func (s *Session) ExpiresAt() time.Time { return s.expiresAt }
-func (s *Session) CreatedAt() time.Time { return s.createdAt }
+func (s *Session) ID() uuid.UUID         { return s.id }
+func (s *Session) UserID() uuid.UUID     { return s.userID }
+func (s *Session) RefreshToken() string  { return s.refreshToken }
+func (s *Session) ExpiresAt() time.Time  { return s.expiresAt }
+func (s *Session) CreatedAt() time.Time  { return s.createdAt }
 func (s *Session) UpdatedAt() *time.Time { return s.updatedAt }
 
 func (s *Session) IsExpired() bool {
 	return time.Now().After(s.expiresAt)
 }
-

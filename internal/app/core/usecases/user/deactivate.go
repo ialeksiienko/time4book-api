@@ -5,25 +5,19 @@ import (
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/user"
+	userout "time4book/internal/app/core/ports/out/user"
 
 	"github.com/google/uuid"
 )
 
-type DeactivateRequest struct {
-	InitiatorID uuid.UUID
-	CompanyID   uuid.UUID
-	TargetID    uuid.UUID
-}
-
-type DeactivateResponse struct{}
-
 type Deactivate struct {
-	userRepo user.UserRepo
+	userRepo userout.Repository
 	log      *slog.Logger
 }
 
 func newDeactivate(
-	urepo user.UserRepo,
+	urepo userout.Repository,
 	l *slog.Logger,
 ) *Deactivate {
 	return &Deactivate{
@@ -32,13 +26,13 @@ func newDeactivate(
 	}
 }
 
-func (c *Deactivate) Execute(ctx context.Context, req *DeactivateRequest) (*DeactivateResponse, error) {
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+func (c *Deactivate) Execute(ctx context.Context, req *port.DeactivateRequest) (*port.DeactivateResponse, error) {
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	target, err := c.userRepo.ByID(ctx, req.TargetID)
+	target, err := c.userRepo.Retrieve(ctx, req.TargetID)
 	if err != nil {
 		return nil, fmt.Errorf("get target: %w", err)
 	}
@@ -61,5 +55,5 @@ func (c *Deactivate) Execute(ctx context.Context, req *DeactivateRequest) (*Deac
 		return nil, fmt.Errorf("update user: %w", err)
 	}
 
-	return &DeactivateResponse{}, nil
+	return &port.DeactivateResponse{}, nil
 }

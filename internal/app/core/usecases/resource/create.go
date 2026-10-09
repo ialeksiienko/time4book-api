@@ -4,43 +4,29 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/resource"
+	companyresourcetypeout "time4book/internal/app/core/ports/out/companyresourcetype"
+	resourceout "time4book/internal/app/core/ports/out/resource"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-type CreateRequest struct {
-	InitiatorID           uuid.UUID
-	CompanyID             uuid.UUID
-	Name                  string `validate:"required"`
-	Type                  string `validate:"required"`
-	CompanyResourceTypeID *uuid.UUID
-	Description           string
-	Location              string
-	MaxReservationMinutes *int
-	AvailableFrom         *string
-	AvailableTo           *string
-}
-
-type CreateResponse struct {
-	ResourceID uuid.UUID
-}
-
 type Create struct {
-	userRepo        user.UserRepo
-	resourceRepo    resource.ResourceRepo
-	companyTypeRepo companyresourcetype.Repo
+	userRepo        userout.Repository
+	resourceRepo    resourceout.Repository
+	companyTypeRepo companyresourcetypeout.Repository
 	validator       *validator.Facade
 	log             *slog.Logger
 }
 
 func newCreate(
-	urepo user.UserRepo,
-	resrepo resource.ResourceRepo,
-	companyTypeRepo companyresourcetype.Repo,
+	urepo userout.Repository,
+	resrepo resourceout.Repository,
+	companyTypeRepo companyresourcetypeout.Repository,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Create {
@@ -53,12 +39,12 @@ func newCreate(
 	}
 }
 
-func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
+func (c *Create) Execute(ctx context.Context, req *port.CreateRequest) (*port.CreateResponse, error) {
 	if err := c.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
@@ -89,17 +75,16 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		}
 	}
 
-	res, err := resource.NewResource(
-		req.CompanyID,
-		req.Name,
-		resType,
-		req.CompanyResourceTypeID,
-		req.Description,
-		req.Location,
-		req.MaxReservationMinutes,
-		req.AvailableFrom,
-		req.AvailableTo,
-	)
+	res, err := resource.NewResource(req.CompanyID, resource.Details{
+		Name:                  req.Name,
+		Type:                  resType,
+		CompanyResourceTypeID: req.CompanyResourceTypeID,
+		Description:           req.Description,
+		Location:              req.Location,
+		MaxReservationMinutes: req.MaxReservationMinutes,
+		AvailableFrom:         req.AvailableFrom,
+		AvailableTo:           req.AvailableTo,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("new resource: %w", err)
 	}
@@ -108,5 +93,5 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		return nil, fmt.Errorf("create resource: %w", err)
 	}
 
-	return &CreateResponse{ResourceID: res.ID()}, nil
+	return &port.CreateResponse{ResourceID: res.ID()}, nil
 }

@@ -4,29 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time4book/internal/app/core/domain/model/reservation"
 	"time4book/internal/app/core/domain/model/user"
-
-	"github.com/google/uuid"
+	port "time4book/internal/app/core/ports/in/reservation"
+	reservationout "time4book/internal/app/core/ports/out/reservation"
+	userout "time4book/internal/app/core/ports/out/user"
 )
 
-type CancelRequest struct {
-	InitiatorID   uuid.UUID
-	CompanyID     uuid.UUID
-	ReservationID uuid.UUID
-}
-
-type CancelResponse struct{}
-
 type Cancel struct {
-	userRepo        user.UserRepo
-	reservationRepo reservation.ReservationRepo
+	userRepo        userout.Repository
+	reservationRepo reservationout.Repository
 	log             *slog.Logger
 }
 
 func newCancel(
-	urepo user.UserRepo,
-	brepo reservation.ReservationRepo,
+	urepo userout.Repository,
+	brepo reservationout.Repository,
 	l *slog.Logger,
 ) *Cancel {
 	return &Cancel{
@@ -36,13 +28,13 @@ func newCancel(
 	}
 }
 
-func (c *Cancel) Execute(ctx context.Context, req *CancelRequest) (*CancelResponse, error) {
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+func (c *Cancel) Execute(ctx context.Context, req *port.CancelRequest) (*port.CancelResponse, error) {
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	b, err := c.reservationRepo.ByID(ctx, req.ReservationID)
+	b, err := c.reservationRepo.Retrieve(ctx, req.ReservationID)
 	if err != nil {
 		return nil, fmt.Errorf("get reservation: %w", err)
 	}
@@ -67,5 +59,5 @@ func (c *Cancel) Execute(ctx context.Context, req *CancelRequest) (*CancelRespon
 		return nil, fmt.Errorf("update reservation: %w", err)
 	}
 
-	return &CancelResponse{}, nil
+	return &port.CancelResponse{}, nil
 }

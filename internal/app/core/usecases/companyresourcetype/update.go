@@ -3,23 +3,20 @@ package companyresourcetypecommands
 import (
 	"context"
 	"fmt"
-	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/companyresourcetype"
+	companyresourcetypeout "time4book/internal/app/core/ports/out/companyresourcetype"
+	userout "time4book/internal/app/core/ports/out/user"
 
 	"github.com/google/uuid"
 )
 
-type UpdateRequest struct {
-	InitiatorID, CompanyID, ID uuid.UUID
-	Name, IconKey              string
-}
-type UpdateResponse struct{}
 type Update struct {
-	repo     companyresourcetype.Repo
-	userRepo user.UserRepo
+	repo     companyresourcetypeout.Repository
+	userRepo userout.Repository
 }
 
-func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateResponse, error) {
+func (c *Update) Execute(ctx context.Context, req *port.UpdateRequest) (*port.UpdateResponse, error) {
 	typ, err := c.repo.Retrieve(ctx, req.ID)
 	if err != nil {
 		return nil, fmt.Errorf("retrieve company resource type: %w", err)
@@ -36,5 +33,5 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 	if err := c.repo.Update(ctx, typ); err != nil {
 		return nil, fmt.Errorf("update company resource type: %w", err)
 	}
-	return &UpdateResponse{}, nil
+	return &port.UpdateResponse{}, nil
 }

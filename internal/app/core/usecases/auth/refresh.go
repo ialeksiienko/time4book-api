@@ -6,34 +6,27 @@ import (
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/auth"
-	"time4book/internal/app/core/domain/model/user"
-	"time4book/internal/app/core/ports"
+	port "time4book/internal/app/core/ports/in/auth"
+	outports "time4book/internal/app/core/ports/out"
+	authout "time4book/internal/app/core/ports/out/auth"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 )
 
-type RefreshRequest struct {
-	RefreshToken string `validate:"required"`
-}
-
-type RefreshResponse struct {
-	AccessToken  *ports.Token
-	RefreshToken *ports.Token
-}
-
 type Refresh struct {
-	userRepo user.UserRepo
-	authRepo auth.AuthRepo
+	userRepo userout.Repository
+	authRepo authout.Repository
 
-	tokenManager ports.TokenManager
+	tokenManager outports.TokenManager
 
 	validator *validator.Facade
 	log       *slog.Logger
 }
 
 func newRefresh(
-	userRepo user.UserRepo,
-	authRepo auth.AuthRepo,
-	tokenManager ports.TokenManager,
+	userRepo userout.Repository,
+	authRepo authout.Repository,
+	tokenManager outports.TokenManager,
 	validator *validator.Facade,
 	log *slog.Logger,
 ) *Refresh {
@@ -46,12 +39,12 @@ func newRefresh(
 	}
 }
 
-func (r *Refresh) Execute(ctx context.Context, req *RefreshRequest) (*RefreshResponse, error) {
+func (r *Refresh) Execute(ctx context.Context, req *port.RefreshRequest) (*port.RefreshResponse, error) {
 	if err := r.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	session, err := r.authRepo.GetSessionByRefreshToken(ctx, req.RefreshToken)
+	session, err := r.authRepo.RetrieveSessionByRefreshToken(ctx, req.RefreshToken)
 	if err != nil {
 		return nil, errors.New("invalid or expired refresh token")
 	}
@@ -61,7 +54,7 @@ func (r *Refresh) Execute(ctx context.Context, req *RefreshRequest) (*RefreshRes
 		return nil, errors.New("refresh token expired")
 	}
 
-	user, err := r.userRepo.ByID(ctx, session.UserID())
+	user, err := r.userRepo.Retrieve(ctx, session.UserID())
 	if err != nil {
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
@@ -80,7 +73,7 @@ func (r *Refresh) Execute(ctx context.Context, req *RefreshRequest) (*RefreshRes
 		return nil, fmt.Errorf("insert new session: %w", err)
 	}
 
-	return &RefreshResponse{
+	return &port.RefreshResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil

@@ -3,20 +3,20 @@ package companyresourcetypecommands
 import (
 	"context"
 	"fmt"
-	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/companyresourcetype"
+	companyresourcetypeout "time4book/internal/app/core/ports/out/companyresourcetype"
+	userout "time4book/internal/app/core/ports/out/user"
 
 	"github.com/google/uuid"
 )
 
-type DeleteRequest struct{ InitiatorID, CompanyID, ID uuid.UUID }
-type DeleteResponse struct{}
 type Delete struct {
-	repo     companyresourcetype.Repo
-	userRepo user.UserRepo
+	repo     companyresourcetypeout.Repository
+	userRepo userout.Repository
 }
 
-func (c *Delete) Execute(ctx context.Context, req *DeleteRequest) (*DeleteResponse, error) {
+func (c *Delete) Execute(ctx context.Context, req *port.DeleteRequest) (*port.DeleteResponse, error) {
 	typ, err := c.repo.Retrieve(ctx, req.ID)
 	if err != nil {
 		return nil, fmt.Errorf("retrieve company resource type: %w", err)
@@ -30,5 +30,5 @@ func (c *Delete) Execute(ctx context.Context, req *DeleteRequest) (*DeleteRespon
 	if err := c.repo.Delete(ctx, req.ID, typ.CompanyID()); err != nil {
 		return nil, fmt.Errorf("delete company resource type: %w", err)
 	}
-	return &DeleteResponse{}, nil
+	return &port.DeleteResponse{}, nil
 }

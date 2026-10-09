@@ -5,34 +5,22 @@ import (
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/company"
-	"time4book/internal/app/core/ports"
+	port "time4book/internal/app/core/ports/in/company"
+	outports "time4book/internal/app/core/ports/out"
+	companyout "time4book/internal/app/core/ports/out/company"
 	"time4book/pkg/validator"
-
-	"github.com/google/uuid"
 )
 
-type CreateRequest struct {
-	OwnerID  uuid.UUID `validate:"required"`
-	Name     string    `validate:"required"`
-	NIP      *string
-	Address  *string
-	Industry *string
-}
-
-type CreateResponse struct {
-	CompanyID uuid.UUID
-}
-
 type Create struct {
-	companyRepo company.CompanyRepo
-	tx          ports.TxManager
+	companyRepo companyout.Repository
+	tx          outports.TxManager
 	validator   *validator.Facade
 	log         *slog.Logger
 }
 
 func newCreate(
-	crepo company.CompanyRepo,
-	tx ports.TxManager,
+	crepo companyout.Repository,
+	tx outports.TxManager,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Create {
@@ -44,7 +32,7 @@ func newCreate(
 	}
 }
 
-func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
+func (c *Create) Execute(ctx context.Context, req *port.CreateRequest) (*port.CreateResponse, error) {
 	err := c.validator.Struct(req)
 	if err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
@@ -68,7 +56,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		return nil, fmt.Errorf("create company: %w", err)
 	}
 
-	return &CreateResponse{
+	return &port.CreateResponse{
 		CompanyID: comp.ID(),
 	}, nil
 }

@@ -4,42 +4,29 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/resource"
+	companyresourcetypeout "time4book/internal/app/core/ports/out/companyresourcetype"
+	resourceout "time4book/internal/app/core/ports/out/resource"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-type UpdateRequest struct {
-	InitiatorID           uuid.UUID
-	ResourceID            uuid.UUID
-	CompanyID             uuid.UUID
-	Name                  string `validate:"required"`
-	Type                  string `validate:"required"`
-	CompanyResourceTypeID *uuid.UUID
-	Description           string
-	Location              string
-	MaxReservationMinutes *int
-	AvailableFrom         *string
-	AvailableTo           *string
-}
-
-type UpdateResponse struct{}
-
 type Update struct {
-	userRepo        user.UserRepo
-	resourceRepo    resource.ResourceRepo
-	companyTypeRepo companyresourcetype.Repo
+	userRepo        userout.Repository
+	resourceRepo    resourceout.Repository
+	companyTypeRepo companyresourcetypeout.Repository
 	validator       *validator.Facade
 	log             *slog.Logger
 }
 
 func newUpdate(
-	urepo user.UserRepo,
-	resrepo resource.ResourceRepo,
-	companyTypeRepo companyresourcetype.Repo,
+	urepo userout.Repository,
+	resrepo resourceout.Repository,
+	companyTypeRepo companyresourcetypeout.Repository,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Update {
@@ -52,17 +39,17 @@ func newUpdate(
 	}
 }
 
-func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateResponse, error) {
+func (c *Update) Execute(ctx context.Context, req *port.UpdateRequest) (*port.UpdateResponse, error) {
 	if err := c.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	res, err := c.resourceRepo.ByID(ctx, req.ResourceID)
+	res, err := c.resourceRepo.Retrieve(ctx, req.ResourceID)
 	if err != nil {
 		return nil, fmt.Errorf("get resource: %w", err)
 	}
@@ -94,35 +81,23 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 		}
 	}
 
-	props := &resource.Props{
-		ID:                    res.ID(),
-		CompanyID:             res.CompanyID(),
+	updatedRes, err := res.UpdateDetails(resource.Details{
 		Name:                  req.Name,
-		ResourceType:          req.Type,
+		Type:                  resource.ResourceType(req.Type),
 		CompanyResourceTypeID: req.CompanyResourceTypeID,
 		Description:           req.Description,
 		Location:              req.Location,
 		MaxReservationMinutes: req.MaxReservationMinutes,
 		AvailableFrom:         req.AvailableFrom,
 		AvailableTo:           req.AvailableTo,
-		Status:                res.Status().String(),
-		UnavailableFrom:       res.UnavailableFrom(),
-		UnavailableTo:         res.UnavailableTo(),
-		UnavailableReason:     res.UnavailableReason(),
-		CreatedAt:             res.CreatedAt(),
-	}
-
-	updatedRes := resource.Reconstitute(props)
-	updatedRes.Restore()
-	if res.Status() == resource.StatusInService {
-		updatedRes.MarkInService(*res.UnavailableReason(), *res.UnavailableFrom(), res.UnavailableTo())
-	} else if res.Status() == resource.StatusInactive {
-		updatedRes.Deactivate()
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update resource details: %w", err)
 	}
 
 	if err := c.resourceRepo.Update(ctx, updatedRes); err != nil {
 		return nil, fmt.Errorf("update resource: %w", err)
 	}
 
-	return &UpdateResponse{}, nil
+	return &port.UpdateResponse{}, nil
 }

@@ -4,28 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time4book/internal/app/core/domain/model/company"
 	"time4book/internal/app/core/domain/model/user"
-
-	"github.com/google/uuid"
+	port "time4book/internal/app/core/ports/in/company"
+	companyout "time4book/internal/app/core/ports/out/company"
+	userout "time4book/internal/app/core/ports/out/user"
 )
 
-type BlockRequest struct {
-	InitiatorID uuid.UUID
-	CompanyID   uuid.UUID
-}
-
-type BlockResponse struct{}
-
 type Block struct {
-	userRepo    user.UserRepo
-	companyRepo company.CompanyRepo
+	userRepo    userout.Repository
+	companyRepo companyout.Repository
 	log         *slog.Logger
 }
 
 func newBlock(
-	urepo user.UserRepo,
-	crepo company.CompanyRepo,
+	urepo userout.Repository,
+	crepo companyout.Repository,
 	l *slog.Logger,
 ) *Block {
 	return &Block{
@@ -35,8 +28,8 @@ func newBlock(
 	}
 }
 
-func (c *Block) Execute(ctx context.Context, req *BlockRequest) (*BlockResponse, error) {
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+func (c *Block) Execute(ctx context.Context, req *port.BlockRequest) (*port.BlockResponse, error) {
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
@@ -45,7 +38,7 @@ func (c *Block) Execute(ctx context.Context, req *BlockRequest) (*BlockResponse,
 		return nil, user.ErrUnauthorized
 	}
 
-	comp, err := c.companyRepo.ByID(ctx, req.CompanyID)
+	comp, err := c.companyRepo.Retrieve(ctx, req.CompanyID)
 	if err != nil {
 		return nil, fmt.Errorf("get company: %w", err)
 	}
@@ -56,5 +49,5 @@ func (c *Block) Execute(ctx context.Context, req *BlockRequest) (*BlockResponse,
 		return nil, fmt.Errorf("update company: %w", err)
 	}
 
-	return &BlockResponse{}, nil
+	return &port.BlockResponse{}, nil
 }

@@ -4,24 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time4book/internal/app/core/domain/model/auth"
-
-	"github.com/google/uuid"
+	port "time4book/internal/app/core/ports/in/auth"
+	authout "time4book/internal/app/core/ports/out/auth"
 )
 
-type LogoutRequest struct {
-	UserID uuid.UUID
-}
-
-type LogoutResponse struct{}
-
 type Logout struct {
-	authRepo auth.AuthRepo
+	authRepo authout.Repository
 	log      *slog.Logger
 }
 
 func newLogout(
-	arepo auth.AuthRepo,
+	arepo authout.Repository,
 	l *slog.Logger,
 ) *Logout {
 	return &Logout{
@@ -30,12 +23,12 @@ func newLogout(
 	}
 }
 
-func (c *Logout) Execute(ctx context.Context, req *LogoutRequest) (*LogoutResponse, error) {
+func (c *Logout) Execute(ctx context.Context, req *port.LogoutRequest) (*port.LogoutResponse, error) {
 	err := c.authRepo.DeleteSessionsByUserID(ctx, req.UserID)
 	if err != nil {
 		c.log.Error("delete sessions by user id", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("delete sessions: %w", err)
 	}
 
-	return &LogoutResponse{}, nil
+	return &port.LogoutResponse{}, nil
 }

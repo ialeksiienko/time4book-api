@@ -4,35 +4,25 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
-	"time4book/internal/app/core/domain/model/resource"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/resource"
+	resourceout "time4book/internal/app/core/ports/out/resource"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-type ServiceRequest struct {
-	InitiatorID uuid.UUID
-	CompanyID   uuid.UUID
-	ResourceID  uuid.UUID
-	Reason      string    `validate:"required"`
-	From        time.Time `validate:"required"`
-	To          *time.Time
-}
-
-type ServiceResponse struct{}
-
 type Service struct {
-	userRepo     user.UserRepo
-	resourceRepo resource.ResourceRepo
+	userRepo     userout.Repository
+	resourceRepo resourceout.Repository
 	validator    *validator.Facade
 	log          *slog.Logger
 }
 
 func newService(
-	urepo user.UserRepo,
-	resrepo resource.ResourceRepo,
+	urepo userout.Repository,
+	resrepo resourceout.Repository,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Service {
@@ -44,17 +34,17 @@ func newService(
 	}
 }
 
-func (c *Service) Execute(ctx context.Context, req *ServiceRequest) (*ServiceResponse, error) {
+func (c *Service) Execute(ctx context.Context, req *port.ServiceRequest) (*port.ServiceResponse, error) {
 	if err := c.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	res, err := c.resourceRepo.ByID(ctx, req.ResourceID)
+	res, err := c.resourceRepo.Retrieve(ctx, req.ResourceID)
 	if err != nil {
 		return nil, fmt.Errorf("get resource: %w", err)
 	}
@@ -71,11 +61,14 @@ func (c *Service) Execute(ctx context.Context, req *ServiceRequest) (*ServiceRes
 		}
 	}
 
-	res.MarkInService(req.Reason, req.From, req.To)
+	updatedRes, err := res.MarkInService(req.Reason, req.From, req.To)
+	if err != nil {
+		return nil, fmt.Errorf("mark resource in service: %w", err)
+	}
 
-	if err := c.resourceRepo.Update(ctx, res); err != nil {
+	if err := c.resourceRepo.Update(ctx, updatedRes); err != nil {
 		return nil, fmt.Errorf("update resource: %w", err)
 	}
 
-	return &ServiceResponse{}, nil
+	return &port.ServiceResponse{}, nil
 }

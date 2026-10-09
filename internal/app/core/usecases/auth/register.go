@@ -7,48 +7,34 @@ import (
 	"time4book/internal/app/core/domain/model/auth"
 	"time4book/internal/app/core/domain/model/company"
 	"time4book/internal/app/core/domain/model/user"
-	"time4book/internal/app/core/ports"
+	port "time4book/internal/app/core/ports/in/auth"
+	outports "time4book/internal/app/core/ports/out"
+	authout "time4book/internal/app/core/ports/out/auth"
+	companyout "time4book/internal/app/core/ports/out/company"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-type RegisterRequest struct {
-	Firstname       string `validate:"required"`
-	Lastname        string `validate:"required"`
-	Email           string `validate:"required,email"`
-	Password        string `validate:"required"`
-	CompanyName     string `validate:"required"`
-	CompanyNIP      *string
-	CompanyAddress  *string
-	CompanyIndustry *string
-}
-
-type RegisterResponse struct {
-	UserID       uuid.UUID
-	CompanyID    uuid.UUID
-	AccessToken  *ports.Token
-	RefreshToken *ports.Token
-}
-
 type Register struct {
-	userRepo    user.UserRepo
-	authRepo    auth.AuthRepo
-	companyRepo company.CompanyRepo
+	userRepo    userout.Repository
+	authRepo    authout.Repository
+	companyRepo companyout.Repository
 
-	tx           ports.TxManager
-	tokenManager ports.TokenManager
+	tx           outports.TxManager
+	tokenManager outports.TokenManager
 
 	validator *validator.Facade
 	log       *slog.Logger
 }
 
 func newRegister(
-	urepo user.UserRepo,
-	arepo auth.AuthRepo,
-	crepo company.CompanyRepo,
-	tx ports.TxManager,
-	tokenManager ports.TokenManager,
+	urepo userout.Repository,
+	arepo authout.Repository,
+	crepo companyout.Repository,
+	tx outports.TxManager,
+	tokenManager outports.TokenManager,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Register {
@@ -63,7 +49,7 @@ func newRegister(
 	}
 }
 
-func (r *Register) Execute(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+func (r *Register) Execute(ctx context.Context, req *port.RegisterRequest) (*port.RegisterResponse, error) {
 	err := r.validator.Struct(req)
 	if err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
@@ -152,7 +138,7 @@ func (r *Register) Execute(ctx context.Context, req *RegisterRequest) (*Register
 		r.log.Error("transaction", slog.String("error", txErr.Error()))
 		return nil, fmt.Errorf("transaction failed: %w", txErr)
 	}
-	return &RegisterResponse{
+	return &port.RegisterResponse{
 		UserID:       usr.ID(),
 		CompanyID:    comp.ID(),
 		AccessToken:  tokens.AccessToken,

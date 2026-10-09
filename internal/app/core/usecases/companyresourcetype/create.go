@@ -5,23 +5,19 @@ import (
 	"fmt"
 	"time4book/internal/app/core/domain/model/companyresourcetype"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/companyresourcetype"
+	companyresourcetypeout "time4book/internal/app/core/ports/out/companyresourcetype"
+	userout "time4book/internal/app/core/ports/out/user"
 
 	"github.com/google/uuid"
 )
 
-type CreateRequest struct {
-	InitiatorID, CompanyID uuid.UUID
-	Name, IconKey          string
-}
-type CreateResponse struct {
-	ID uuid.UUID `json:"id"`
-}
 type Create struct {
-	repo     companyresourcetype.Repo
-	userRepo user.UserRepo
+	repo     companyresourcetypeout.Repository
+	userRepo userout.Repository
 }
 
-func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
+func (c *Create) Execute(ctx context.Context, req *port.CreateRequest) (*port.CreateResponse, error) {
 	if req.CompanyID == uuid.Nil {
 		return nil, user.ErrUnauthorized
 	}
@@ -35,5 +31,5 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 	if err := c.repo.Create(ctx, typ); err != nil {
 		return nil, fmt.Errorf("create company resource type: %w", err)
 	}
-	return &CreateResponse{ID: typ.ID()}, nil
+	return &port.CreateResponse{ID: typ.ID()}, nil
 }

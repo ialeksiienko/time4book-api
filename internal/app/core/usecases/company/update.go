@@ -6,32 +6,24 @@ import (
 	"log/slog"
 	"time4book/internal/app/core/domain/model/company"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/company"
+	companyout "time4book/internal/app/core/ports/out/company"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-type UpdateRequest struct {
-	InitiatorID uuid.UUID
-	CompanyID   uuid.UUID
-	Name        string `validate:"required"`
-	NIP         *string
-	Address     *string
-	Industry    *string
-}
-
-type UpdateResponse struct{}
-
 type Update struct {
-	userRepo    user.UserRepo
-	companyRepo company.CompanyRepo
+	userRepo    userout.Repository
+	companyRepo companyout.Repository
 	validator   *validator.Facade
 	log         *slog.Logger
 }
 
 func newUpdate(
-	urepo user.UserRepo,
-	crepo company.CompanyRepo,
+	urepo userout.Repository,
+	crepo companyout.Repository,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Update {
@@ -43,12 +35,12 @@ func newUpdate(
 	}
 }
 
-func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateResponse, error) {
+func (c *Update) Execute(ctx context.Context, req *port.UpdateRequest) (*port.UpdateResponse, error) {
 	if err := c.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
@@ -62,7 +54,7 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 		}
 	}
 
-	comp, err := c.companyRepo.ByID(ctx, req.CompanyID)
+	comp, err := c.companyRepo.Retrieve(ctx, req.CompanyID)
 	if err != nil {
 		return nil, fmt.Errorf("get company: %w", err)
 	}
@@ -87,5 +79,5 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 		return nil, fmt.Errorf("update company: %w", err)
 	}
 
-	return &UpdateResponse{}, nil
+	return &port.UpdateResponse{}, nil
 }

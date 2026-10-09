@@ -54,13 +54,13 @@ func (c *Company) Unblock() {
 	c.updatedAt = &now
 }
 
-func (c *Company) IsBlocked() bool     { return c.status == StatusBlocked }
-func (c *Company) ID() uuid.UUID       { return c.id }
-func (c *Company) OwnerID() uuid.UUID  { return c.ownerID }
-func (c *Company) Name() string        { return c.name }
-func (c *Company) NIP() *string        { return c.nip }
-func (c *Company) Address() *string    { return c.address }
-func (c *Company) Industry() *string   { return c.industry }
+func (c *Company) IsBlocked() bool       { return c.status == StatusBlocked }
+func (c *Company) ID() uuid.UUID         { return c.id }
+func (c *Company) OwnerID() uuid.UUID    { return c.ownerID }
+func (c *Company) Name() string          { return c.name }
+func (c *Company) NIP() *string          { return c.nip }
+func (c *Company) Address() *string      { return c.address }
+func (c *Company) Industry() *string     { return c.industry }
 func (c *Company) Status() CompanyStatus { return c.status }
 func (c *Company) CreatedAt() time.Time  { return c.createdAt }
 func (c *Company) UpdatedAt() *time.Time { return c.updatedAt }

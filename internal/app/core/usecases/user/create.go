@@ -2,48 +2,31 @@ package usercommands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/auth"
 	"time4book/internal/app/core/domain/model/user"
-	"time4book/internal/app/core/ports"
+	port "time4book/internal/app/core/ports/in/user"
+	outports "time4book/internal/app/core/ports/out"
+	authout "time4book/internal/app/core/ports/out/auth"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-var (
-	ErrCompanyMismatch = errors.New("security violation: company mismatch")
-	ErrRoleNotAllowed  = errors.New("security violation: role not allowed")
-)
-
-type CreateRequest struct {
-	InitiatorID uuid.UUID
-	CompanyID   uuid.UUID
-	Firstname   string `validate:"required"`
-	Lastname    string `validate:"required"`
-	Email       string `validate:"required,email"`
-	Password    string `validate:"required"`
-	Role        string `validate:"required"`
-}
-
-type CreateResponse struct {
-	UserID uuid.UUID
-}
-
 type Create struct {
-	userRepo  user.UserRepo
-	authRepo  auth.AuthRepo
-	tx        ports.TxManager
+	userRepo  userout.Repository
+	authRepo  authout.Repository
+	tx        outports.TxManager
 	validator *validator.Facade
 	log       *slog.Logger
 }
 
 func newCreate(
-	urepo user.UserRepo,
-	arepo auth.AuthRepo,
-	tx ports.TxManager,
+	urepo userout.Repository,
+	arepo authout.Repository,
+	tx outports.TxManager,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Create {
@@ -56,12 +39,12 @@ func newCreate(
 	}
 }
 
-func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
+func (c *Create) Execute(ctx context.Context, req *port.CreateRequest) (*port.CreateResponse, error) {
 	if err := c.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validate error: %w", err)
 	}
 
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
@@ -69,7 +52,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 	roleKey := user.RoleKeyFromString(req.Role)
 	if !initiator.Role().IsDeveloper() && (initiator.CompanyID() == uuid.Nil || initiator.CompanyID() != req.CompanyID) {
 		c.log.Error("create user", slog.String("initiator_role", initiator.Role().String()), slog.String("initiator_company_id", initiator.CompanyID().String()), slog.String("request_company_id", req.CompanyID.String()))
-		return nil, fmt.Errorf("%w: initiator company does not match target company", ErrCompanyMismatch)
+		return nil, fmt.Errorf("%w: initiator company does not match target company", port.ErrCompanyMismatch)
 	}
 
 	targetRole, err := user.NewRole(roleKey, roleKey.FriendlyName())
@@ -78,7 +61,7 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 	}
 
 	if !initiator.CanCreateUserWithRole(targetRole) {
-		return nil, fmt.Errorf("%w: role %q is not allowed for initiator role %q", ErrRoleNotAllowed, targetRole.Key(), initiator.Role().Key())
+		return nil, fmt.Errorf("%w: role %q is not allowed for initiator role %q", port.ErrRoleNotAllowed, targetRole.Key(), initiator.Role().Key())
 	}
 
 	newUser, err := user.NewUser(
@@ -112,5 +95,5 @@ func (c *Create) Execute(ctx context.Context, req *CreateRequest) (*CreateRespon
 		return nil, txErr
 	}
 
-	return &CreateResponse{UserID: newUser.ID()}, nil
+	return &port.CreateResponse{UserID: newUser.ID()}, nil
 }

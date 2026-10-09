@@ -5,31 +5,21 @@ import (
 	"fmt"
 	"log/slog"
 	"time4book/internal/app/core/domain/model/user"
+	port "time4book/internal/app/core/ports/in/user"
+	userout "time4book/internal/app/core/ports/out/user"
 	"time4book/pkg/validator"
 
 	"github.com/google/uuid"
 )
 
-type UpdateRequest struct {
-	InitiatorID uuid.UUID
-	CompanyID   uuid.UUID
-	TargetID    uuid.UUID
-	Firstname   *string
-	Lastname    *string
-	Role        *string
-	Status      *string
-}
-
-type UpdateResponse struct{}
-
 type Update struct {
-	userRepo  user.UserRepo
+	userRepo  userout.Repository
 	validator *validator.Facade
 	log       *slog.Logger
 }
 
 func newUpdate(
-	urepo user.UserRepo,
+	urepo userout.Repository,
 	v *validator.Facade,
 	l *slog.Logger,
 ) *Update {
@@ -40,13 +30,13 @@ func newUpdate(
 	}
 }
 
-func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateResponse, error) {
-	initiator, err := c.userRepo.ByID(ctx, req.InitiatorID)
+func (c *Update) Execute(ctx context.Context, req *port.UpdateRequest) (*port.UpdateResponse, error) {
+	initiator, err := c.userRepo.Retrieve(ctx, req.InitiatorID)
 	if err != nil {
 		return nil, fmt.Errorf("get initiator: %w", err)
 	}
 
-	target, err := c.userRepo.ByID(ctx, req.TargetID)
+	target, err := c.userRepo.Retrieve(ctx, req.TargetID)
 	if err != nil {
 		return nil, fmt.Errorf("get target: %w", err)
 	}
@@ -86,5 +76,5 @@ func (c *Update) Execute(ctx context.Context, req *UpdateRequest) (*UpdateRespon
 		return nil, fmt.Errorf("update user repo: %w", err)
 	}
 
-	return &UpdateResponse{}, nil
+	return &port.UpdateResponse{}, nil
 }
