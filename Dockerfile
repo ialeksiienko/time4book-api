@@ -15,8 +15,6 @@ WORKDIR /app
 COPY --from=builder /app/main ./
 COPY --from=builder /app/internal/app/adapters/out/postgres/sql ./internal/app/adapters/out/postgres/sql
 
-RUN touch .env
-
 ENV ENV=prod \
     GOOSE_MIGRATION_DIR=internal/app/adapters/out/postgres/sql \
     GOOSE_DRIVER=postgres

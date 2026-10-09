@@ -21,4 +21,6 @@ The HTTP adapter calls input ports. Commands and queries use output ports. The d
 
 Run `go test ./...` and `go vet ./...`. Database tests need a PostgreSQL database with the migrations applied. Set `TIME4BOOK_TEST_DATABASE_URL` to run them; without it, they are skipped.
 
-The migration files are in `internal/app/adapters/out/postgres/sql`. A local `.env` file can use `.env.example` as a guide.
+The migration files are in `internal/app/adapters/out/postgres/sql`. For local work, copy `.env.example` to `.env` and fill in your values. Values already set in the process environment take priority over `.env`.
+
+The Docker image has no `.env` file. Set `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `JWT_SECRET`, `JWT_ACCESS_TOKEN_DURATION`, and `JWT_REFRESH_TOKEN_DURATION` when starting the container. The image sets `ENV=prod`. The app checks these values at startup and stops if one is missing or invalid. Docker can pass them with `--env` or `--env-file`; keep secret values out of the Dockerfile and image.
